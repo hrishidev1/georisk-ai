@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./backend/src"
+    ],
+    "python.terminal.activateEnvironment": true,
+    "editor.formatOnSave": true
+}
