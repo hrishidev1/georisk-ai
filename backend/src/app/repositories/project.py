@@ -23,7 +23,7 @@ class ProjectRepository(BaseRepository[Project]):
             .order_by(Project.created_at.desc())
         )
 
-        return list(self.db.scalars(statement).all())
+        return list(self._db.scalars(statement).all())
 
     def get_by_id_and_owner(
         self,
@@ -40,4 +40,4 @@ class ProjectRepository(BaseRepository[Project]):
             .where(Project.owner_id == owner_id)
         )
 
-        return self.db.scalar(statement)
+        return self._db.scalar(statement)

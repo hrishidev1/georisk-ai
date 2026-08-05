@@ -20,7 +20,10 @@ from app.services import (
 
 from app.models import User
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
+)
 
 @router.post(
     "/register",

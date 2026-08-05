@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.storage.local import LocalStorage
 from app.storage.base import StorageService
+from functools import lru_cache
 
 
 from app.db.dependencies import get_db
@@ -11,6 +12,8 @@ from app.models import User
 from app.repositories import (
     AOIRepository,
     ProjectRepository,
+    RasterRepository,
+    UserRepository,
 )
 from app.services import (
     AOIService,
@@ -18,6 +21,7 @@ from app.services import (
     ProjectAccessService,
     ProjectService,
     UserService,
+    RasterService,
 )
 
 bearer_scheme = HTTPBearer(auto_error=True)
@@ -104,6 +108,38 @@ def get_aoi_service(
         project_access,
     )
 
+#---------------------------------------------------------------------------
+# Storage
+#---------------------------------------------------------------------------
 
-def get_storage() -> StorageService:
-    return LocalStorage(settings.STORAGE_ROOT)
+@lru_cache
+def get_storage_service() -> StorageService:
+    return LocalStorage(
+        settings.STORAGE_ROOT,
+        )
+
+#---------------------------------------------------------------------------
+# Raster
+#---------------------------------------------------------------------------
+
+def get_raster_repository(
+    db: Session = Depends(get_db),
+) -> RasterRepository:
+    return RasterRepository(db)
+
+def get_raster_service(
+    raster_repository: RasterRepository = Depends(
+        get_raster_repository,
+    ),
+    project_access_service: ProjectAccessService = Depends(
+        get_project_access_service,
+    ),
+    storage_service: StorageService = Depends(
+        get_storage_service,
+    ),
+) -> RasterService:
+    return RasterService(
+        repository=raster_repository,
+        project_access_service=project_access_service,
+        storage_service=storage_service,
+    )

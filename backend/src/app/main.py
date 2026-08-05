@@ -12,7 +12,6 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.health import router as health_router
 from app.core.config import settings
 from app.core.logging import configure_logging, logger
 from app.exceptions.handlers import register_exception_handlers

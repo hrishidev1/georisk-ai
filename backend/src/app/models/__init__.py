@@ -8,6 +8,7 @@ from .enums import (
     RasterStatus,
     RasterType,
 )
+from app.models.raster import Raster
 
 __all__ = [
     "Base", 
@@ -18,4 +19,5 @@ __all__ = [
     "RasterSource", 
     "RasterStatus", 
     "RasterType"
+    "Raster",
 ]

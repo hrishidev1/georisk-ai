@@ -3,6 +3,8 @@ from app.services.auth import AuthService
 from app.services.project import ProjectService
 from app.services.aoi import AOIService
 from app.services.project_access import ProjectAccessService
+from app.services.raster import RasterService
+
 
 __all__ = [
     "UserService",
@@ -10,4 +12,5 @@ __all__ = [
     "ProjectService",
     "AOIService",
     "ProjectAccessService",
+    "RasterService",
 ]

@@ -1,6 +1,10 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
+from typing import Annotated
+
+from fastapi import Form
+from app.models.enums import RasterType
 
 from app.models import (
     RasterSource,
@@ -8,14 +12,29 @@ from app.models import (
     RasterType,
 )
 
-
 class RasterCreate(BaseModel):
-    name: str = Field(
-        min_length=1,
-        max_length=255,
+    model_config = ConfigDict(
+        extra="forbid",
     )
+
+    name: str
+
     description: str | None = None
+
     type: RasterType
+
+    @classmethod
+    def as_form(
+        cls,
+        name: Annotated[str, Form(...)],
+        type: Annotated[RasterType, Form(...)],
+        description: Annotated[str | None, Form()] = None,
+    ) -> "RasterCreate":
+        return cls(
+            name=name,
+            description=description,
+            type=type,
+        )
 
 
 class RasterUpdate(BaseModel):
@@ -27,27 +46,10 @@ class RasterUpdate(BaseModel):
     description: str | None = None
 
 
-class RasterMetadata(BaseModel):
-    crs: str | None
-
-    width: int | None
-    height: int | None
-
-    band_count: int | None
-
-    pixel_size_x: float | None
-    pixel_size_y: float | None
-
-    min_x: float | None
-    min_y: float | None
-    max_x: float | None
-    max_y: float | None
-
-    file_size: int | None
-
-
 class RasterResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
 
     id: int
 
@@ -61,7 +63,24 @@ class RasterResponse(BaseModel):
     source: RasterSource
     status: RasterStatus
 
-    metadata: RasterMetadata
+    file_path: str
+
+    crs: str | None
+
+    width: int | None
+    height: int | None
+
+    band_count: int | None
+
+    pixel_size_x: float | None
+    pixel_size_y: float |None
+
+    min_x: float | None
+    min_y: float | None
+    max_x: float | None
+    max_y: float | None
+
+    file_size: int | None
 
     created_at: datetime
     updated_at: datetime

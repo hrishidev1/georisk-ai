@@ -36,11 +36,25 @@ class StorageService(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_path(
+    def open(
+        self,
+        path: Path,
+        mode: str = "rb",
+    ) -> BinaryIO:
+        """
+        Open a stored file.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def resolve_path(
         self,
         path: Path,
     ) -> Path:
         """
-        Return a local path to the stored file.
+        Return a local filesystem path.
+
+        Storage backends that do not expose local paths
+        should raise NotImplementedError.
         """
         raise NotImplementedError

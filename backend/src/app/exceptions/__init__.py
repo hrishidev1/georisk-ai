@@ -14,6 +14,10 @@ from app.exceptions.geo import (
     InvalidGeoJSONError,
     InvalidGeometryError,
 )
+from app.exceptions.raster import (
+    RasterNotFoundError,
+    RasterAlreadyExistsError,
+)
 
 __all__ = [
     "AppException",
@@ -26,4 +30,6 @@ __all__ = [
     "AOINotFoundError",
     "InvalidGeoJSONError",
     "InvalidGeometryError",
+    "RasterNotFoundError",
+    "RasterAlreadyExistsError",
 ]

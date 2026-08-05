@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampedModel
+from app.models.timestampedmodel import TimestampedModel
 
 from app.models.enums import (
     RasterSource,
@@ -21,18 +21,12 @@ from app.models.enums import (
     RasterType,
 )
 
-class Raster(Base, TimestampedModel):
+class Raster(TimestampedModel):
     __tablename__ = "rasters"
 
     __table_args__ = (
         Index("ix_rasters_project_status", "project_id", "status"),
         Index("ix_rasters_project_parent", "project_id", "parent_raster_id"),
-    )
-
-    id: Mapped[int] = mapped_column(
-        Integer,
-        primary_key=True,
-        index=True,
     )
 
     project_id: Mapped[int] = mapped_column(
@@ -145,7 +139,7 @@ class Raster(Base, TimestampedModel):
     )
 
     parent: Mapped["Raster | None"] = relationship(
-        remote_side=[id],
+        remote_side="Raster.id",
         back_populates="children",
     )
 

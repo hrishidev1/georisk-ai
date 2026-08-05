@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+from typing import BinaryIO
 
 from app.storage.base import StorageService
 from app.storage.exceptions import (
@@ -10,19 +11,28 @@ from app.storage.exceptions import (
 
 
 class LocalStorage(StorageService):
-    def __init__(self, root: Path) -> None:
+    def __init__(
+        self,
+        root: Path,
+    ) -> None:
         self._root = root
-        self._root.mkdir(parents=True, exist_ok=True)
+        self._root.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
     def save(
         self,
-        file: BufferedIOBase,
+        file: BinaryIO,
         destination: Path,
     ) -> Path:
         target = self._root / destination
 
         try:
-            target.parent.mkdir(parents=True, exist_ok=True)
+            target.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
 
             with target.open("wb") as output:
                 shutil.copyfileobj(file, output)
@@ -47,6 +57,7 @@ class LocalStorage(StorageService):
 
         try:
             target.unlink()
+
         except OSError as exc:
             raise StorageDeleteError(
                 f"Failed to delete file '{target}'."
@@ -58,7 +69,16 @@ class LocalStorage(StorageService):
     ) -> bool:
         return (self._root / path).exists()
 
-    def get_path(
+    def open(
+        self,
+        path: Path,
+        mode: str = "rb",
+    ) -> BinaryIO:
+        target = self.resolve_path(path)
+
+        return target.open(mode)
+
+    def resolve_path(
         self,
         path: Path,
     ) -> Path:
