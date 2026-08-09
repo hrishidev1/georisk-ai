@@ -7,8 +7,12 @@ from .enums import (
     RasterSource,
     RasterStatus,
     RasterType,
+    VectorType,
+    VectorStatus,
 )
 from app.models.raster import Raster
+from app.models.processing_job import ProcessingJob
+from app.models.vector_layer import VectorLayer
 
 __all__ = [
     "Base", 
@@ -18,6 +22,10 @@ __all__ = [
     "AOI",
     "RasterSource", 
     "RasterStatus", 
-    "RasterType"
+    "RasterType",
+    "VectorType",
+    "VectorStatus",
     "Raster",
+    "ProcessingJob",
+    "VectorLayer",
 ]

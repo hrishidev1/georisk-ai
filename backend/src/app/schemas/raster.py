@@ -4,7 +4,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import Annotated
 
 from fastapi import Form
-from app.models.enums import RasterType
 
 from app.models import (
     RasterSource,
@@ -81,6 +80,10 @@ class RasterResponse(BaseModel):
     max_y: float | None
 
     file_size: int | None
+
+    processor: str | None = None
+    processor_version: str | None = None
+    processing_parameters: dict | None = None
 
     created_at: datetime
     updated_at: datetime

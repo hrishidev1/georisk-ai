@@ -19,6 +19,10 @@ from app.exceptions.raster import (
     RasterAlreadyExistsError,
 )
 
+from app.exceptions.processing import (
+    ProcessingJobNotFoundError,
+)
+
 __all__ = [
     "AppException",
     "UserAlreadyExistsError",
@@ -32,4 +36,5 @@ __all__ = [
     "InvalidGeometryError",
     "RasterNotFoundError",
     "RasterAlreadyExistsError",
+    "ProcessingJobNotFoundError",
 ]

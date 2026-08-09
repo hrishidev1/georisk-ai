@@ -1,0 +1,162 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * GeoRisk AI — Premium Light UI/UX Design System
+ * Inspired by Google MD3 (Expressive), Google AI Studio, Linear, Notion, and Stripe.
+ * Philosophy: Clarity over decoration. Soft off-white backgrounds, pure white floating cards,
+ * intelligent spacing, soft accessible status pills, and refined Google blue accents.
+ */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 12px);
+  --radius-3xl: calc(var(--radius) + 20px);
+}
+
+:root {
+  --radius: 0.875rem; /* 14px default base radius for soft expressive shapes */
+
+  /* Primary Light Palette — Google / Stripe Quality */
+  --background: #FAFBFC; /* Soft off-white background */
+  --foreground: #1E2024; /* Refined dark gray instead of harsh pure black */
+
+  /* Surfaces & Floating Cards */
+  --card: #FFFFFF; /* Pure white floating surfaces */
+  --card-foreground: #1E2024;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #1E2024;
+
+  /* Accent — Expressive Google Blue (#0B57D0 / #1A73E8) */
+  --primary: #0B57D0;
+  --primary-foreground: #FFFFFF;
+  --primary-hover: #174EA6;
+  --primary-subtle: #E8F0FE; /* Soft blue pill background */
+
+  /* Secondary — Soft functional neutral gray */
+  --secondary: #F4F6F8;
+  --secondary-foreground: #3C4043;
+  --secondary-hover: #E9ECEF;
+
+  /* Muted — Quiet details & disabled states */
+  --muted: #F8F9FA;
+  --muted-foreground: #5F6368; /* Readable mid gray */
+
+  /* Accent / Interactive hover states */
+  --accent: #F4F6F8;
+  --accent-foreground: #1E2024;
+
+  /* Soft Danger & Alert colors */
+  --destructive: #B3261E;
+  --destructive-foreground: #FFFFFF;
+  --destructive-subtle: #FCE8E6;
+  --destructive-subtle-text: #8C1D18;
+
+  /* Soft Status Tints */
+  --status-success-bg: #E6F4EA;
+  --status-success-text: #0D652D;
+  --status-warning-bg: #FEF7E0;
+  --status-warning-text: #B06000;
+  --status-info-bg: #E8F0FE;
+  --status-info-text: #0B57D0;
+
+  /* Gentle structural boundaries */
+  --border: #E8EAED;
+  --input: #E8EAED;
+  --ring: #0B57D0;
+
+  /* Sidebar styling */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #3C4043;
+  --sidebar-primary: #0B57D0;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #E8F0FE;
+  --sidebar-accent-foreground: #0B57D0;
+  --sidebar-border: #F0F2F5;
+}
+
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Custom premium card elevation with subtle shadow & hover transitions */
+.elevated-card {
+  background: var(--card);
+  border: 1px solid rgba(232, 234, 237, 0.7);
+  border-radius: 1.25rem; /* 20px */
+  box-shadow: 0 4px 16px -2px rgba(26, 30, 36, 0.03), 0 2px 6px -1px rgba(26, 30, 36, 0.02);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.elevated-card-hover:hover {
+  transform: translateY(-3px) scale(1.008);
+  box-shadow: 0 14px 28px -6px rgba(11, 87, 208, 0.06), 0 8px 16px -4px rgba(26, 30, 36, 0.04);
+  border-color: rgba(11, 87, 208, 0.15);
+}
+
+/* Tasteful real backdrop blur for floating menus and header panels */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(232, 234, 237, 0.8);
+}
+
+.glass-modal {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Shimmer animation for intelligent skeleton placeholders */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #F0F2F5 25%, #F8F9FA 50%, #F0F2F5 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+}
+
+/* Smooth fade-in page transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in-fade {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

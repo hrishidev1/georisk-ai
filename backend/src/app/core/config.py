@@ -77,7 +77,7 @@ class Settings(BaseSettings):
 
     JWT_ALGORITHM: Literal["HS256"] = "HS256"
 
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
 
     # --- CORS ---
     # Accepts either a JSON array (`["https://a.com","https://b.com"]`) or
@@ -98,8 +98,24 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "georisk"
 
+    # --- Infrastructure Selection Flags ---
+    STORAGE_BACKEND: Literal["local", "gcs", "s3"] = "local"
+    QUEUE_BACKEND: Literal["local", "pubsub"] = "local"
+    ANALYTICS_BACKEND: Literal["noop", "bigquery"] = "noop"
+    PROCESSING_EXECUTOR: Literal["local", "spark"] = "local"
+
     # --- Storage ---
     STORAGE_ROOT: Path = Path("data")
+    GCS_BUCKET_NAME: str = "georisk-ai-rasters-staging"
+    S3_BUCKET_NAME: str = "georisk-ai-rasters-s3-staging"
+
+    # --- Cloud Infrastructure (Pub/Sub, BigQuery, Cloud Run, Cloud SQL) ---
+    GCP_PROJECT_ID: str = "georisk-ai-production"
+    PUBSUB_TOPIC_TASKS: str = "raster-processing-jobs"
+    PUBSUB_SUBSCRIPTION_TASKS: str = "raster-processing-workers-sub"
+    BIGQUERY_DATASET: str = "georisk_analytics_dw"
+    CLOUD_RUN_SERVICE: str = "georisk-backend-service"
+    CLOUD_SQL_INSTANCE: str = "georisk-ai-production:us-central1:georisk-pg-main"
 
     # --- Logging ---
     LOG_LEVEL: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"

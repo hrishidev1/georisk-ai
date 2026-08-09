@@ -19,7 +19,7 @@ from app.services import AOIService
 
 
 router = APIRouter(
-    prefix="/{project_id}/aois",
+    prefix="/projects/{project_id}/aois",
     tags=["AOIs"],
 )
 

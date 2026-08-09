@@ -52,9 +52,22 @@ class StorageService(ABC):
         path: Path,
     ) -> Path:
         """
-        Return a local filesystem path.
+        Return a local filesystem path for an existing file.
 
         Storage backends that do not expose local paths
         should raise NotImplementedError.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_absolute_path(
+        self,
+        path: Path,
+    ) -> Path:
+        """
+        Return the absolute filesystem path for a relative storage path.
+
+        Unlike ``resolve_path``, this does NOT verify that the file exists,
+        making it suitable for output paths that have not been written yet.
         """
         raise NotImplementedError

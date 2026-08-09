@@ -73,3 +73,19 @@ class RasterRepository(BaseRepository[Raster]):
         )
 
         return result.scalar_one_or_none()
+
+    def create(
+        self,
+        raster: Raster,
+    ) -> Raster:
+        self._db.add(
+            raster,
+        )
+
+        self._db.commit()
+
+        self._db.refresh(
+            raster,
+        )
+
+        return raster

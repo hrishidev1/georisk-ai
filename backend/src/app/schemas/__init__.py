@@ -28,6 +28,12 @@ from app.schemas.raster import (
     RasterUpdate,
 )
 
+from app.schemas.processing import (
+    ProcessingJobListResponse,
+    ProcessingJobResponse,
+    ProcessingRequest,
+)
+
 __all__ = [
     "UserCreate",
     "UserResponse",
@@ -45,4 +51,7 @@ __all__ = [
     "RasterCreate",
     "RasterResponse",
     "RasterUpdate",
+    "ProcessingJobListResponse",
+    "ProcessingJobResponse",
+    "ProcessingRequest",
 ]

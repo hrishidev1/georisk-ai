@@ -90,3 +90,9 @@ class LocalStorage(StorageService):
             )
 
         return target
+
+    def get_absolute_path(
+        self,
+        path: Path,
+    ) -> Path:
+        return self._root / path

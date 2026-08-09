@@ -1,5 +1,7 @@
 from pathlib import Path
-from uuid import UUID
+from uuid import UUID, uuid4
+from app.processing.enums import ProcessorType
+
 
 
 class StoragePaths:
@@ -75,18 +77,19 @@ class StoragePaths:
     @staticmethod
     def generated_raster(
         project_id: int,
-        raster_id: UUID,
+        processor: ProcessorType,
         extension: str = ".tif",
     ) -> Path:
         """
         Path for generated rasters
         (hillshade, slope, predictions, etc.).
         """
-
         return (
-            StoragePaths.raster_directory(project_id)
+            Path("projects")
+            / str(project_id)
             / "generated"
-            / f"{raster_id}{extension.lower()}"
+            / processor.value
+            / f"{uuid4()}{extension}"
         )
 
     @staticmethod
@@ -96,8 +99,31 @@ class StoragePaths:
         """
         Temporary storage path.
         """
-
         return (
             Path("tmp")
             / filename
+        )
+
+    @staticmethod
+    def temp(
+        project_id: int,
+    ) -> Path:
+        """
+        Temporary working directory for a project's processing jobs.
+        """
+        return (
+            Path("tmp")
+            / str(project_id)
+        )
+
+    @staticmethod
+    def outputs(
+        project_id: int,
+    ) -> Path:
+        """
+        Output directory for generated rasters.
+        """
+        return (
+            StoragePaths.project(project_id)
+            / "generated"
         )

@@ -20,6 +20,11 @@ from app.schemas import (
 from app.services import RasterService
 from typing import Annotated
 from app.schemas.raster import RasterCreate
+from app.schemas.processing import (
+    ProcessingJobListResponse,
+    ProcessingJobResponse,
+    ProcessingRequest,
+)
 
 router = APIRouter(
     prefix="/projects/{project_id}/rasters",
@@ -140,5 +145,70 @@ def delete_raster(
 
     return Response(
         status_code=status.HTTP_204_NO_CONTENT,
+    )
+
+@router.post(
+    "/{raster_id}/process",
+    response_model=ProcessingJobResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def process_raster(
+    project_id: int,
+    raster_id: int,
+    request: ProcessingRequest,
+    service: RasterService = Depends(
+        get_raster_service,
+    ),
+    current_user: User = Depends(
+        get_current_user,
+    ),
+):
+    return service.submit_processing_job(
+        project_id,
+        raster_id,
+        request,
+        current_user,
+    )
+
+@router.get(
+    "/{raster_id}/jobs",
+    response_model=ProcessingJobListResponse,
+)
+def list_processing_jobs(
+    project_id: int,
+    raster_id: int,
+    service: RasterService = Depends(
+        get_raster_service,
+    ),
+    current_user: User = Depends(
+        get_current_user,
+    ),
+):
+    return service.list_processing_jobs(
+        project_id,
+        raster_id,
+        current_user,
+    )
+
+@router.get(
+    "/{raster_id}/jobs/{job_id}",
+    response_model=ProcessingJobResponse,
+)
+def get_processing_job(
+    project_id: int,
+    raster_id: int,
+    job_id: int,
+    service: RasterService = Depends(
+        get_raster_service,
+    ),
+    current_user: User = Depends(
+        get_current_user,
+    ),
+):
+    return service.get_processing_job(
+        project_id,
+        raster_id,
+        job_id,
+        current_user,
     )
 

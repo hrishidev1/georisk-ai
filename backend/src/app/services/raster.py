@@ -1,14 +1,21 @@
+from __future__ import annotations
+
 from pathlib import Path
 from typing import BinaryIO
 from uuid import uuid4
 
 from app.exceptions import RasterNotFoundError
+from app.exceptions.processing import ProcessingJobNotFoundError
 from app.models import (
     Raster,
     RasterSource,
     RasterStatus,
     User,
+    ProcessingJob,
 )
+from app.processing import ProcessingContext, ProcessingManager
+from app.services.processing_job_tracker import ProcessingJobTracker
+from app.schemas.processing import ProcessingRequest
 from app.raster import (
     extract_metadata,
     validate_raster,
@@ -22,18 +29,41 @@ from app.schemas.raster import (
 from app.services.project_access import ProjectAccessService
 from app.storage.base import StorageService
 from app.storage.paths import StoragePaths
+from app.factories import RasterFactory
 
 
 class RasterService:
+    """
+    Responsible only for raster lifecycle management.
+
+    Responsibilities
+    ----------------
+    • Upload
+    • Validation
+    • Metadata extraction
+    • CRUD
+
+    Raster processing (Hillshade, Slope, AI, etc.)
+    is handled by ProcessingService.
+    """
+
     def __init__(
         self,
         repository: RasterRepository,
         project_access_service: ProjectAccessService,
         storage_service: StorageService,
+        processing_manager: ProcessingManager,
+        processing_tracker: ProcessingJobTracker,
     ) -> None:
         self._repository = repository
         self._project_access_service = project_access_service
-        self._storage_service = storage_service
+        self._storage = storage_service
+        self._processing_manager = processing_manager
+        self._processing_tracker = processing_tracker
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
 
     def _require_raster(
         self,
@@ -63,36 +93,11 @@ class RasterService:
             extension=extension,
         )
 
-    def _create_raster_model(
-        self,
-        *,
-        project_id: int,
-        destination: Path,
-        metadata: RasterMetadata,
-        raster: RasterCreate,
-        parent_raster_id: int | None,
-    ) -> Raster:
-        return Raster(
-            project_id=project_id,
-            parent_raster_id=parent_raster_id,
-            name=raster.name,
-            description=raster.description,
-            type=raster.type,
-            source=RasterSource.UPLOADED,
-            status=RasterStatus.READY,
-            file_path=str(destination),
-            crs=metadata.crs,
-            width=metadata.width,
-            height=metadata.height,
-            band_count=metadata.band_count,
-            pixel_size_x=metadata.pixel_size_x,
-            pixel_size_y=metadata.pixel_size_y,
-            min_x=metadata.min_x,
-            min_y=metadata.min_y,
-            max_x=metadata.max_x,
-            max_y=metadata.max_y,
-            file_size=metadata.file_size,
-        )
+    
+
+    # ------------------------------------------------------------------
+    # Upload
+    # ------------------------------------------------------------------
 
     def create_uploaded_raster(
         self,
@@ -104,7 +109,19 @@ class RasterService:
         parent_raster_id: int | None = None,
     ) -> Raster:
         """
-        Upload, validate, extract metadata, and register a raster.
+        Upload a raster and register it.
+
+        Workflow
+
+        Upload
+            ↓
+        Storage
+            ↓
+        Validation
+            ↓
+        Metadata Extraction
+            ↓
+        Database
         """
 
         self._project_access_service.get_owned_project(
@@ -113,11 +130,11 @@ class RasterService:
         )
 
         destination = self._build_storage_path(
-            project_id=project_id,
-            filename=filename,
+            project_id,
+            filename,
         )
 
-        stored_path = self._storage_service.save(
+        stored_path = self._storage.save(
             file=file,
             destination=destination,
         )
@@ -131,7 +148,7 @@ class RasterService:
                 stored_path,
             )
 
-            raster_model = self._create_raster_model(
+            raster_model = RasterFactory.from_upload(
                 project_id=project_id,
                 destination=destination,
                 metadata=metadata,
@@ -144,10 +161,14 @@ class RasterService:
             )
 
         except Exception:
-            self._storage_service.delete(
+            self._storage.delete(
                 destination,
             )
             raise
+
+    # ------------------------------------------------------------------
+    # CRUD
+    # ------------------------------------------------------------------
 
     def list(
         self,
@@ -227,10 +248,96 @@ class RasterService:
             raster_id,
         )
 
-        self._storage_service.delete(
+        self._storage.delete(
             Path(raster.file_path),
         )
 
         self._repository.delete(
             raster,
         )
+
+    # ------------------------------------------------------------------
+    # Processing
+    # ------------------------------------------------------------------
+
+    def submit_processing_job(
+        self,
+        project_id: int,
+        raster_id: int,
+        request: ProcessingRequest,
+        current_user: User,
+    ) -> ProcessingJob:
+        self._project_access_service.get_owned_project(
+            project_id,
+            current_user.id,
+        )
+
+        raster = self._require_raster(
+            project_id,
+            raster_id,
+        )
+
+        # Create a new ProcessingJob in DB via tracker
+        job = ProcessingJob(
+            raster_id=raster_id,
+            processor=request.processor,
+            parameters=request.parameters,
+            processor_version="1.0.0",
+            executor=self._processing_manager.executor_name,
+        )
+        job = self._processing_tracker.create_job(job)
+        job = self._processing_tracker.queue(job)
+
+        # Currently synchronous execution — in production, this sends to QueueService
+        context = ProcessingContext(
+            processor=request.processor,
+            project_id=project_id,
+            raster=raster,
+            current_user=current_user,
+            input_path=Path(raster.file_path),
+            working_directory=StoragePaths.temporary(f"job_{job.id}"),
+            output_directory=StoragePaths.raster_directory(project_id) / "generated",
+            storage=self._storage,
+            parameters=request.parameters,
+            job_id=job.id,
+        )
+
+        self._processing_tracker.start(job)
+        try:
+            result = self._processing_manager.execute(context)
+            job = self._processing_tracker.complete(job, "\n".join(result.logs))
+        except Exception as e:
+            job = self._processing_tracker.fail(job, str(e))
+        
+        return job
+
+    def list_processing_jobs(
+        self,
+        project_id: int,
+        raster_id: int,
+        current_user: User,
+    ) -> dict[str, list[ProcessingJob]]:
+        self._project_access_service.get_owned_project(
+            project_id,
+            current_user.id,
+        )
+
+        jobs = self._processing_tracker.get_by_raster(raster_id)
+        return {"jobs": jobs}
+
+    def get_processing_job(
+        self,
+        project_id: int,
+        raster_id: int,
+        job_id: int,
+        current_user: User,
+    ) -> ProcessingJob:
+        self._project_access_service.get_owned_project(
+            project_id,
+            current_user.id,
+        )
+
+        job = self._processing_tracker.get_by_id(job_id)
+        if not job or job.raster_id != raster_id:
+            raise ProcessingJobNotFoundError()
+        return job

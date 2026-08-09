@@ -10,6 +10,7 @@ from sqlalchemy import (
     String,
     Text,
     Index,
+    JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,6 +21,7 @@ from app.models.enums import (
     RasterStatus,
     RasterType,
 )
+from app.processing.enums import ProcessorType
 
 class Raster(TimestampedModel):
     __tablename__ = "rasters"
@@ -134,6 +136,24 @@ class Raster(TimestampedModel):
         nullable=True,
     )
 
+    processor: Mapped[ProcessorType | None] = mapped_column(
+        SqlEnum(
+            ProcessorType,
+            name="processor_type",
+        ),
+        nullable=True,
+    )
+
+    processor_version: Mapped[str | None] = mapped_column(
+        String(32),
+        nullable=True,
+    )
+
+    processing_parameters: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
     project: Mapped["Project"] = relationship(
         back_populates="rasters",
     )
@@ -145,4 +165,9 @@ class Raster(TimestampedModel):
 
     children: Mapped[list["Raster"]] = relationship(
         back_populates="parent",
+    )
+
+    processing_jobs: Mapped[list["ProcessingJob"]] = relationship(
+        back_populates="raster",
+        cascade="all, delete-orphan",
     )
