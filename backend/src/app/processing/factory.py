@@ -6,6 +6,7 @@ from app.processing.processors.metadata import MetadataProcessor
 from app.processing.processors.slope import SlopeProcessor
 from app.processing.registry import ProcessorRegistry
 from app.processing.processors.color_relief import ColorReliefProcessor
+from app.processing.processors.contour import ContourProcessor
 
 
 def create_processing_manager() -> ProcessingManager:
@@ -35,6 +36,10 @@ def create_processing_manager() -> ProcessingManager:
 
     registry.register(
         ColorReliefProcessor()
+    )
+
+    registry.register(
+        ContourProcessor()
     )
 
     return ProcessingManager(

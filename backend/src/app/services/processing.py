@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from app.exceptions import RasterNotFoundError
-from app.factories import RasterFactory
+from app.factories import RasterFactory, VectorFactory
 from app.models import (
     ProcessingJob,
     Raster,
@@ -19,6 +19,7 @@ from app.processing.enums import ProcessingStatus
 from app.repositories import (
     ProcessingJobRepository,
     RasterRepository,
+    VectorLayerRepository,
 )
 from app.services.processing_job_tracker import (
     ProcessingJobTracker,
@@ -47,6 +48,7 @@ class ProcessingService:
     def __init__(
         self,
         raster_repository: RasterRepository,
+        vector_layer_repository: VectorLayerRepository,
         job_repository: ProcessingJobRepository,
         processing_manager: ProcessingManager,
         job_tracker: ProcessingJobTracker,
@@ -55,6 +57,7 @@ class ProcessingService:
         worker: ProcessingWorker,
     ) -> None:
         self._rasters = raster_repository
+        self._vectors = vector_layer_repository
         self._jobs = job_repository
         self._manager = processing_manager
         self._tracker = job_tracker
@@ -231,6 +234,16 @@ class ProcessingService:
 
             self._rasters.create(
                 raster,
+            )
+
+        for output in result.vector_outputs:
+            vector_layer = VectorFactory.from_generated(
+                parent=parent,
+                output=output,
+            )
+
+            self._vectors.create(
+                vector_layer,
             )
 
     def _require_raster(

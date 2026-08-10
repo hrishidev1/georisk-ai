@@ -16,6 +16,7 @@ from app.repositories import (
     ProjectRepository,
     RasterRepository,
     UserRepository,
+    VectorLayerRepository,
 )
 from app.services import (
     AOIService,
@@ -237,9 +238,18 @@ def get_raster_service(
 # Processing Service
 # ---------------------------------------------------------------------------
 
+def get_vector_layer_repository(
+    db: Session = Depends(get_db),
+) -> VectorLayerRepository:
+    return VectorLayerRepository(db)
+
+
 def get_processing_service(
     raster_repository: RasterRepository = Depends(
         get_raster_repository,
+    ),
+    vector_layer_repository: VectorLayerRepository = Depends(
+        get_vector_layer_repository,
     ),
     processing_job_repository: ProcessingJobRepository = Depends(
         get_processing_job_repository,
@@ -262,6 +272,7 @@ def get_processing_service(
 ) -> ProcessingService:
     return ProcessingService(
         raster_repository=raster_repository,
+        vector_layer_repository=vector_layer_repository,
         job_repository=processing_job_repository,
         processing_manager=processing_manager,
         job_tracker=processing_job_tracker,
