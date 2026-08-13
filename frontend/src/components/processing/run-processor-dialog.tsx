@@ -39,6 +39,10 @@ export function RunProcessorDialog({ rasterId }: RunProcessorDialogProps) {
         altitude: parseFloat(altitude),
         z_factor: parseFloat(zFactor),
       };
+    } else if (processor === "slope" || processor === "aspect") {
+      parameters = {
+        z_factor: parseFloat(zFactor),
+      };
     }
 
     createJob.mutate(
@@ -100,6 +104,8 @@ export function RunProcessorDialog({ rasterId }: RunProcessorDialogProps) {
                 className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#0B57D0]"
               >
                 <option value="hillshade">Hillshade Generator</option>
+                <option value="slope">Slope Calculator</option>
+                <option value="aspect">Aspect Calculator</option>
                 <option value="metadata">Metadata Extractor</option>
               </select>
             </div>
@@ -148,6 +154,23 @@ export function RunProcessorDialog({ rasterId }: RunProcessorDialogProps) {
                     className="h-11 rounded-xl border-slate-200 bg-slate-50/50"
                   />
                 </div>
+              </div>
+            )}
+
+            {(processor === "slope" || processor === "aspect") && (
+              <div className="grid gap-2">
+                <Label htmlFor="zfactor" className="text-xs font-semibold uppercase text-slate-500">
+                  Z-Factor
+                </Label>
+                <Input
+                  id="zfactor"
+                  type="number"
+                  step="0.1"
+                  value={zFactor}
+                  onChange={(e) => setZFactor(e.target.value)}
+                  required
+                  className="h-11 rounded-xl border-slate-200 bg-slate-50/50"
+                />
               </div>
             )}
           </div>
