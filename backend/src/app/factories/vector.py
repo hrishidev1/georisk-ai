@@ -15,7 +15,8 @@ class VectorFactory:
     @staticmethod
     def from_generated(
         *,
-        parent: Raster,
+        project_id: int,
+        parent: Raster | None = None,
         output: GeneratedVector,
     ) -> VectorLayer:
         file_size = None
@@ -23,8 +24,8 @@ class VectorFactory:
             file_size = output.file_path.stat().st_size
 
         return VectorLayer(
-            project_id=parent.project_id,
-            parent_raster_id=parent.id,
+            project_id=project_id,
+            parent_raster_id=parent.id if parent else None,
             name=output.name,
             description=output.description,
             artifact_type=output.artifact_type,

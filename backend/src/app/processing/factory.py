@@ -7,6 +7,9 @@ from app.processing.processors.slope import SlopeProcessor
 from app.processing.registry import ProcessorRegistry
 from app.processing.processors.color_relief import ColorReliefProcessor
 from app.processing.processors.contour import ContourProcessor
+from app.processing.processors.clip import ClipProcessor
+from app.processing.processors.merge import MergeProcessor
+from app.processing.processors.reproject import ReprojectProcessor
 
 
 def create_processing_manager() -> ProcessingManager:
@@ -40,6 +43,18 @@ def create_processing_manager() -> ProcessingManager:
 
     registry.register(
         ContourProcessor()
+    )
+
+    registry.register(
+        ClipProcessor()
+    )
+
+    registry.register(
+        MergeProcessor()
+    )
+
+    registry.register(
+        ReprojectProcessor()
     )
 
     return ProcessingManager(

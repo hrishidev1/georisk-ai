@@ -27,21 +27,14 @@ class ProcessingContext:
     # ------------------------------------------------------------------
 
     processor: ProcessorType
-
     project_id: int
-
-    raster: Raster
-
     current_user: User
 
     # ------------------------------------------------------------------
     # File locations
     # ------------------------------------------------------------------
 
-    input_path: Path
-
     working_directory: Path
-
     output_directory: Path
 
     # ------------------------------------------------------------------
@@ -51,8 +44,13 @@ class ProcessingContext:
     storage: StorageService
 
     # ------------------------------------------------------------------
-    # Processor parameters
+    # Optional / Default fields
     # ------------------------------------------------------------------
+
+    raster: Raster | None = None
+    input_rasters: list[Raster] = field(default_factory=list)
+    input_path: Path | None = None
+    input_paths: list[Path] = field(default_factory=list)
 
     parameters: dict[str, Any] = field(
         default_factory=dict,

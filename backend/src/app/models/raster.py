@@ -14,6 +14,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.models.base import Base
+
 from app.models.timestampedmodel import TimestampedModel
 
 from app.models.enums import (
@@ -22,6 +24,26 @@ from app.models.enums import (
     RasterType,
 )
 from app.processing.enums import ProcessorType
+
+class RasterLineage(Base):
+    __tablename__ = "raster_lineage"
+
+    child_raster_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "rasters.id",
+            ondelete="CASCADE",
+        ),
+        primary_key=True,
+    )
+
+    parent_raster_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "rasters.id",
+            ondelete="CASCADE",
+        ),
+        primary_key=True,
+    )
+
 
 class Raster(TimestampedModel):
     __tablename__ = "rasters"

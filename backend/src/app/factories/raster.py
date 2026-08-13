@@ -54,14 +54,15 @@ class RasterFactory:
     @staticmethod
     def from_generated(
         *,
-        parent: Raster,
+        project_id: int,
+        parent: Raster | None = None,
         output: GeneratedRaster,
     ) -> Raster:
         metadata = output.metadata
 
         return Raster(
-            project_id=parent.project_id,
-            parent_raster_id=parent.id,
+            project_id=project_id,
+            parent_raster_id=parent.id if parent else None,
             name=output.name,
             description=output.description,
             type=output.raster_type,

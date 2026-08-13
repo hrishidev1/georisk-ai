@@ -39,12 +39,21 @@ class ProcessingJob(Base):
         primary_key=True,
     )
 
-    raster_id: Mapped[int] = mapped_column(
+    project_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "projects.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+
+    raster_id: Mapped[int | None] = mapped_column(
         ForeignKey(
             "rasters.id",
             ondelete="CASCADE",
         ),
-        nullable=False,
+        nullable=True,
         index=True,
     )
 

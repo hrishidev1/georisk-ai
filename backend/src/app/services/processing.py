@@ -17,6 +17,7 @@ from app.processing import (
 )
 from app.processing.enums import ProcessingStatus
 from app.repositories import (
+    AOIRepository,
     ProcessingJobRepository,
     RasterRepository,
     VectorLayerRepository,
@@ -49,6 +50,7 @@ class ProcessingService:
         self,
         raster_repository: RasterRepository,
         vector_layer_repository: VectorLayerRepository,
+        aoi_repository: AOIRepository,
         job_repository: ProcessingJobRepository,
         processing_manager: ProcessingManager,
         job_tracker: ProcessingJobTracker,
@@ -58,6 +60,7 @@ class ProcessingService:
     ) -> None:
         self._rasters = raster_repository
         self._vectors = vector_layer_repository
+        self._aois = aoi_repository
         self._jobs = job_repository
         self._manager = processing_manager
         self._tracker = job_tracker
@@ -72,28 +75,41 @@ class ProcessingService:
     def process(
         self,
         *,
-        raster_id: int,
+        project_id: int | None = None,
+        raster_id: int | None = None,
         processor: ProcessorType,
         parameters: dict[str, object],
         current_user: User,
     ) -> ProcessingJob:
-        raster = self._require_raster(
-            raster_id,
-        )
+        if raster_id is None and project_id is None:
+            raise ValueError("Either raster_id or project_id must be provided")
 
-        self._authorize_raster(
-            raster,
-            current_user,
+        raster = None
+        if raster_id is not None:
+            raster = self._require_raster(raster_id)
+            if project_id is None:
+                project_id = raster.project_id
+            elif raster.project_id != project_id:
+                raise RasterNotFoundError(f"Raster {raster_id} not found in project {project_id}.")
+
+        # Satisfy type checker for project_id
+        assert project_id is not None
+
+        self._project_access_service.get_owned_project(
+            project_id,
+            current_user.id,
         )
 
         job = self._create_job(
-            raster=raster,
+            project_id=project_id,
+            raster_id=raster_id,
             processor=processor,
             parameters=parameters,
         )
 
         context = self._build_context(
             job=job,
+            project_id=project_id,
             raster=raster,
             processor=processor,
             parameters=parameters,
@@ -165,12 +181,14 @@ class ProcessingService:
     def _create_job(
         self,
         *,
-        raster: Raster,
+        project_id: int,
+        raster_id: int | None,
         processor: ProcessorType,
         parameters: dict[str, object],
     ) -> ProcessingJob:
         job = ProcessingJob(
-            raster_id=raster.id,
+            project_id=project_id,
+            raster_id=raster_id,
             processor=processor,
             parameters=parameters,
         )
@@ -204,7 +222,9 @@ class ProcessingService:
                 return
 
             self._persist_outputs(
+                project_id=context.project_id,
                 parent=context.raster,
+                input_rasters=context.input_rasters,
                 result=result,
             )
 
@@ -223,21 +243,44 @@ class ProcessingService:
     def _persist_outputs(
         self,
         *,
-        parent: Raster,
+        project_id: int,
+        parent: Raster | None,
+        input_rasters: list[Raster],
         result: ProcessingResult,
     ) -> None:
+        from app.models.raster import RasterLineage
+
         for output in result.outputs:
             raster = RasterFactory.from_generated(
+                project_id=project_id,
                 parent=parent,
                 output=output,
             )
 
-            self._rasters.create(
+            raster = self._rasters.create(
                 raster,
             )
 
+            # Persist multi-input provenance if parent is None (e.g. Merge)
+            if parent is None and input_rasters:
+                for input_r in input_rasters:
+                    lineage = RasterLineage(
+                        child_raster_id=raster.id,
+                        parent_raster_id=input_r.id,
+                    )
+                    # We can use session directly through a repository, or simply add to DB.
+                    # Since ProcessingService is responsible for orchestrating, we should add to session.
+                    # But wait, ProcessingService uses _rasters repository which encapsulates the session.
+                    # Let's add it via a new method on RasterRepository, or directly via session if accessible.
+                    # _rasters.create_lineage(lineage)?
+                    # Let's see if we can do self._rasters.session.add(lineage)
+                    self._rasters._session.add(lineage)
+
+                self._rasters._session.flush()
+
         for output in result.vector_outputs:
             vector_layer = VectorFactory.from_generated(
+                project_id=project_id,
                 parent=parent,
                 output=output,
             )
@@ -273,29 +316,73 @@ class ProcessingService:
         self,
         *,
         job: ProcessingJob,
-        raster: Raster,
+        project_id: int,
+        raster: Raster | None,
         processor: ProcessorType,
         parameters: dict[str, object],
         current_user: User,
     ) -> ProcessingContext:
-        input_path = self._storage.resolve_path(
-            Path(
-                raster.file_path,
-            ),
-        )
+        inputs_rasters = []
+        input_paths = []
+
+        # Single input raster resolution
+        input_path = None
+        if raster is not None:
+            inputs_rasters.append(raster)
+            input_path = Path(raster.file_path)
+            input_paths.append(input_path)
+
+        # Multi-input raster resolution via parameters
+        if "raster_ids" in parameters:
+            raster_ids = parameters["raster_ids"]
+            if not isinstance(raster_ids, list):
+                raise InvalidProcessingContextError("raster_ids must be a list")
+            if not raster_ids:
+                raise InvalidProcessingContextError("raster_ids cannot be empty")
+            if len(raster_ids) < 2:
+                raise InvalidProcessingContextError("At least 2 raster_ids required for merge")
+            if len(set(raster_ids)) != len(raster_ids):
+                raise InvalidProcessingContextError("Duplicate raster_ids are not allowed")
+
+            inputs_rasters = []
+            input_paths = []
+            for rid in raster_ids:
+                r = self._require_raster(rid)
+                if r.project_id != project_id:
+                    raise InvalidProcessingContextError(f"Raster {rid} does not belong to project {project_id}")
+                inputs_rasters.append(r)
+                input_paths.append(Path(r.file_path))
+        # Storage resolution
+        if input_path is not None:
+            input_path = self._storage.resolve_path(input_path)
+
+        resolved_input_paths = [self._storage.resolve_path(p) for p in input_paths]
+
+        aoi_id = parameters.get("aoi_id")
+        if aoi_id is not None:
+            aoi = self._aois.get_by_id_and_project(aoi_id, project_id)
+            if aoi is None:
+                from app.exceptions import AOINotFoundError
+                raise AOINotFoundError()
+
+            from app.geo import geometry_to_feature
+            feature = geometry_to_feature(aoi.geometry)
+            parameters["clipping_geometry"] = feature.model_dump()
 
         return ProcessingContext(
             processor=processor,
-            project_id=raster.project_id,
+            project_id=project_id,
             raster=raster,
+            input_rasters=inputs_rasters,
             current_user=current_user,
             parameters=parameters,
             input_path=input_path,
+            input_paths=resolved_input_paths,
             working_directory=StoragePaths.temp(
-                raster.project_id,
+                project_id,
             ),
             output_directory=StoragePaths.outputs(
-                raster.project_id,
+                project_id,
             ),
             storage=self._storage,
             job_id=job.id,
@@ -304,7 +391,7 @@ class ProcessingService:
                 job,
                 progress,
                 message,
-            )
+            ),
         )
 
     def _update_progress(
