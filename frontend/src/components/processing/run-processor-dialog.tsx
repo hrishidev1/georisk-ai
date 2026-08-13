@@ -57,12 +57,12 @@ export function RunProcessorDialog({ rasterId }: RunProcessorDialogProps) {
           setOpen(false);
         },
         onError: (err: unknown) => {
-          const error = err as { response?: { data?: { detail?: string | unknown[] } } };
+          const error = err as { response?: { data?: { detail?: string | { msg?: string }[] } } };
           const detail = error.response?.data?.detail;
-          const errorMessage = typeof detail === "string" 
-            ? detail 
-            : Array.isArray(detail) 
-              ? detail.map(d => (d as any).msg).join(", ") 
+          const errorMessage = typeof detail === "string"
+            ? detail
+            : Array.isArray(detail)
+              ? detail.map((d) => (d as { msg?: string }).msg).filter(Boolean).join(", ")
               : "Failed to submit job";
           toast.error(errorMessage);
         },

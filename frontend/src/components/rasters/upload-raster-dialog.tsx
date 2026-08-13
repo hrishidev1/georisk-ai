@@ -25,7 +25,7 @@ export function UploadRasterDialog({ projectId }: UploadRasterDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<RasterType>("dem");
-  
+
   const upload = useUploadRaster(projectId);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -47,12 +47,12 @@ export function UploadRasterDialog({ projectId }: UploadRasterDialogProps) {
           setType("dem");
         },
         onError: (err: unknown) => {
-          const error = err as { response?: { data?: { detail?: string | unknown[] } } };
+          const error = err as { response?: { data?: { detail?: string | { msg?: string }[] } } };
           const detail = error.response?.data?.detail;
-          const errorMessage = typeof detail === "string" 
-            ? detail 
-            : Array.isArray(detail) 
-              ? detail.map(d => (d as any).msg).join(", ") 
+          const errorMessage = typeof detail === "string"
+            ? detail
+            : Array.isArray(detail)
+              ? detail.map((d) => (d as { msg?: string }).msg).filter(Boolean).join(", ")
               : "Failed to upload raster";
           toast.error(errorMessage);
         },

@@ -21,12 +21,12 @@ export function ProcessingJobsPanel({ projectId }: ProcessingJobsPanelProps) {
         toast.success("Job cancellation requested");
       },
       onError: (err: unknown) => {
-        const error = err as { response?: { data?: { detail?: string | unknown[] } } };
+        const error = err as { response?: { data?: { detail?: string | { msg?: string }[] } } };
         const detail = error.response?.data?.detail;
-        const errorMessage = typeof detail === "string" 
-          ? detail 
-          : Array.isArray(detail) 
-            ? detail.map(d => (d as any).msg).join(", ") 
+        const errorMessage = typeof detail === "string"
+          ? detail
+          : Array.isArray(detail)
+            ? detail.map((d) => (d as { msg?: string }).msg).filter(Boolean).join(", ")
             : "Failed to cancel job";
         toast.error(errorMessage);
       },
@@ -118,7 +118,7 @@ export function ProcessingJobsPanel({ projectId }: ProcessingJobsPanelProps) {
                   {activeJobs.map((job) => (
                     <div key={job.id} className="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm relative overflow-hidden group">
                       <div className="absolute top-0 left-0 h-1 bg-blue-500 transition-all duration-300" style={{ width: `${job.progress}%` }}></div>
-                      
+
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide border ${getStatusColor(job.status)}`}>
@@ -174,8 +174,8 @@ export function ProcessingJobsPanel({ projectId }: ProcessingJobsPanelProps) {
                           </span>
                         </div>
                         <span className="text-[11px] text-slate-500">
-                          {job.status === "COMPLETED" ? `Finished successfully. ${job.message}` : 
-                           job.status === "FAILED" ? `Failed: ${job.message}` : 
+                          {job.status === "COMPLETED" ? `Finished successfully. ${job.message}` :
+                           job.status === "FAILED" ? `Failed: ${job.message}` :
                            "Cancelled by user."}
                         </span>
                       </div>
