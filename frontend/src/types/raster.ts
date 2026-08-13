@@ -37,3 +37,17 @@ export interface RasterResponse {
   created_at: string;
   updated_at: string;
 }
+
+export interface RasterBandStatistics {
+  min: number;
+  max: number;
+  mean: number;
+  std: number;
+  valid_pixels: number;
+  histogram_counts: number[];
+  histogram_bins: number[];
+}
+
+export interface RasterStatisticsResponse {
+  bands: Record<string, RasterBandStatistics>;
+}

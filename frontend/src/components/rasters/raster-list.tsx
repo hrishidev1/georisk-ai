@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Cpu, FileType, MapPin, Layers } from "lucide-react";
 import { RunProcessorDialog } from "@/components/processing/run-processor-dialog";
 import { RasterMapViewer } from "@/components/rasters/raster-map-viewer";
+import { RasterStatsDialog } from "@/components/rasters/raster-stats-dialog";
 import { toast } from "sonner";
 
 interface RasterListProps {
@@ -71,6 +72,7 @@ export function RasterList({ projectId }: RasterListProps) {
             </div>
             <div className="flex items-center gap-2">
               <RasterMapViewer raster={raster} />
+              <RasterStatsDialog raster={raster} />
               <RunProcessorDialog rasterId={raster.id} />
               <Button
                 variant="ghost"

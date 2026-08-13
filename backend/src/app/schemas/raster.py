@@ -87,3 +87,17 @@ class RasterResponse(BaseModel):
 
     created_at: datetime
     updated_at: datetime
+
+
+class RasterBandStatistics(BaseModel):
+    min: float
+    max: float
+    mean: float
+    std: float
+    valid_pixels: int
+    histogram_counts: list[int]
+    histogram_bins: list[float]
+
+
+class RasterStatisticsResponse(BaseModel):
+    bands: dict[str, RasterBandStatistics]

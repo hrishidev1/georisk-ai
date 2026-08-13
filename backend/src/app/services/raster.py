@@ -25,11 +25,13 @@ from app.repositories import RasterRepository
 from app.schemas.raster import (
     RasterCreate,
     RasterUpdate,
+    RasterStatisticsResponse,
 )
 from app.services.project_access import ProjectAccessService
 from app.storage.base import StorageService
 from app.storage.paths import StoragePaths
 from app.factories import RasterFactory
+from app.raster.preview import RasterPreview
 
 
 class RasterService:
@@ -255,6 +257,53 @@ class RasterService:
         self._repository.delete(
             raster,
         )
+
+    # ------------------------------------------------------------------
+    # Preview and Statistics
+    # ------------------------------------------------------------------
+
+    def get_preview(
+        self,
+        project_id: int,
+        raster_id: int,
+        current_user: User,
+    ) -> bytes:
+        self._project_access_service.get_owned_project(
+            project_id,
+            current_user.id,
+        )
+        raster = self._require_raster(project_id, raster_id)
+
+        return RasterPreview.generate_preview(Path(raster.file_path))
+
+    def get_thumbnail(
+        self,
+        project_id: int,
+        raster_id: int,
+        current_user: User,
+    ) -> bytes:
+        self._project_access_service.get_owned_project(
+            project_id,
+            current_user.id,
+        )
+        raster = self._require_raster(project_id, raster_id)
+
+        return RasterPreview.generate_thumbnail(Path(raster.file_path))
+
+    def get_statistics(
+        self,
+        project_id: int,
+        raster_id: int,
+        current_user: User,
+    ) -> RasterStatisticsResponse:
+        self._project_access_service.get_owned_project(
+            project_id,
+            current_user.id,
+        )
+        raster = self._require_raster(project_id, raster_id)
+
+        stats = RasterPreview.extract_statistics(Path(raster.file_path))
+        return RasterStatisticsResponse(bands=stats)
 
     # ------------------------------------------------------------------
     # Processing

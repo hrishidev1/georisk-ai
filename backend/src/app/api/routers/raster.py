@@ -19,7 +19,10 @@ from app.schemas import (
 )
 from app.services import RasterService
 from typing import Annotated
-from app.schemas.raster import RasterCreate
+from app.schemas.raster import (
+    RasterCreate,
+    RasterStatisticsResponse,
+)
 from app.schemas.processing import (
     ProcessingJobListResponse,
     ProcessingJobResponse,
@@ -146,6 +149,52 @@ def delete_raster(
     return Response(
         status_code=status.HTTP_204_NO_CONTENT,
     )
+
+@router.get(
+    "/{raster_id}/preview.png",
+    responses={
+        200: {
+            "content": {"image/png": {}}
+        }
+    }
+)
+def get_raster_preview(
+    project_id: int,
+    raster_id: int,
+    service: RasterService = Depends(get_raster_service),
+    current_user: User = Depends(get_current_user),
+):
+    image_bytes = service.get_preview(project_id, raster_id, current_user)
+    return Response(content=image_bytes, media_type="image/png")
+
+@router.get(
+    "/{raster_id}/thumbnail.png",
+    responses={
+        200: {
+            "content": {"image/png": {}}
+        }
+    }
+)
+def get_raster_thumbnail(
+    project_id: int,
+    raster_id: int,
+    service: RasterService = Depends(get_raster_service),
+    current_user: User = Depends(get_current_user),
+):
+    image_bytes = service.get_thumbnail(project_id, raster_id, current_user)
+    return Response(content=image_bytes, media_type="image/png")
+
+@router.get(
+    "/{raster_id}/statistics",
+    response_model=RasterStatisticsResponse,
+)
+def get_raster_statistics(
+    project_id: int,
+    raster_id: int,
+    service: RasterService = Depends(get_raster_service),
+    current_user: User = Depends(get_current_user),
+):
+    return service.get_statistics(project_id, raster_id, current_user)
 
 @router.post(
     "/{raster_id}/process",

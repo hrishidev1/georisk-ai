@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import type { RasterResponse, RasterCreate } from "@/types/raster";
+import type { RasterResponse, RasterCreate, RasterStatisticsResponse } from "@/types/raster";
 
 export async function uploadRaster(
   projectId: number,
@@ -46,4 +46,25 @@ export async function deleteRaster(
   rasterId: number
 ): Promise<void> {
   await api.delete(`/projects/${projectId}/rasters/${rasterId}`);
+}
+
+export async function getRasterPreview(
+  projectId: number,
+  rasterId: number
+): Promise<Blob> {
+  const response = await api.get(
+    `/projects/${projectId}/rasters/${rasterId}/preview.png`,
+    { responseType: "blob" }
+  );
+  return response.data;
+}
+
+export async function getRasterStatistics(
+  projectId: number,
+  rasterId: number
+): Promise<RasterStatisticsResponse> {
+  const response = await api.get<RasterStatisticsResponse>(
+    `/projects/${projectId}/rasters/${rasterId}/statistics`
+  );
+  return response.data;
 }
