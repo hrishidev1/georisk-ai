@@ -126,14 +126,11 @@ class Settings(BaseSettings):
     def DATABASE_URL(self) -> str:
         """
         Build the SQLAlchemy 2.x connection string from the discrete
-        POSTGRES_* fields above. Using the `psycopg` (v3) driver, which is
-        the actively maintained driver and the one with first-class
-        PostGIS/async support we'll lean on later.
+        POSTGRES_* fields above.
 
-        Renamed from SQLALCHEMY_DATABASE_URI -> DATABASE_URL per
-        architecture review: the value isn't SQLAlchemy-specific (Alembic,
-        health checks, and any future async engine all consume the same
-        string), so the ORM-flavored name was misleading.
+        The SSL requirement is included in the DSN so managed PostgreSQL
+        providers such as Neon can be used without introducing a separate
+        database configuration path.
         """
         dsn = PostgresDsn.build(
             scheme="postgresql+psycopg",
@@ -142,6 +139,7 @@ class Settings(BaseSettings):
             host=self.POSTGRES_HOST,
             port=self.POSTGRES_PORT,
             path=self.POSTGRES_DB,
+            query="sslmode=require",
         )
         return str(dsn)
 
