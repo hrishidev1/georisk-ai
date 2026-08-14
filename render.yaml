@@ -3,6 +3,6 @@ services:
     name: georisk-ai-backend
     runtime: python
     rootDir: backend
-    buildCommand: pip install uv && uv sync --frozen
+    buildCommand: curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH="$HOME/.local/bin:$PATH" && uv sync --frozen
     startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health/
