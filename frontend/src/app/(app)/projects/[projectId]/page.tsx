@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useProject } from "@/hooks/use-projects";
+import { useAOIs } from "@/hooks/use-aois";
 import { useRasters } from "@/hooks/use-rasters";
 import { useProcessingJobs } from "@/hooks/use-processing";
 import { Card } from "@/components/ui/card";
@@ -34,6 +35,7 @@ export default function WorkspaceOverviewPage() {
   const params = useParams<{ projectId: string }>();
   const projectId = Number(params?.projectId);
   const { data: project } = useProject(projectId);
+  const { data: aois } = useAOIs(projectId);
   const { data: rasters } = useRasters(projectId);
   const { data: jobs } = useProcessingJobs({ project_id: projectId }, 3000);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
@@ -104,11 +106,15 @@ export default function WorkspaceOverviewPage() {
               </div>
             </div>
             <div className="text-3xl font-bold text-[#1A1D20] tracking-tight">
-              0 AOIs
+              {aois?.length ?? 0} {aois?.length === 1 ? "AOI" : "AOIs"}
             </div>
           </div>
           <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>SRID: EPSG:4326 PostGIS Table</span>
+            <span className="truncate max-w-[150px]">
+              {aois && aois.length > 0
+                ? `Latest: ${aois[0].name}`
+                : "EPSG:4326 PostGIS"}
+            </span>
             <span className="text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full">
               Active
             </span>
