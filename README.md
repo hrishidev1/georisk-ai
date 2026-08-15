@@ -1,256 +1,170 @@
 # GeoRisk AI
 
-> An AI-powered geospatial risk analysis platform for managing projects, defining Areas of Interest (AOIs), and generating intelligent spatial insights from satellite imagery.
+> An AI-powered geospatial risk analysis and intelligence platform combining Next.js, FastAPI, PostGIS, high-performance raster processing, and uncertainty-aware computer vision.
 
-GeoRisk AI is a full-stack geospatial intelligence platform designed to simplify satellite imagery analysis through modern web technologies, machine learning, and GIS tooling. It enables users to organize projects, define spatial regions of interest, process geospatial datasets, and visualize analysis results through an interactive web interface.
-
-The project is being built with a strong emphasis on clean architecture, maintainability, and scalability, making it suitable for both research and production-oriented workflows.
+GeoRisk AI is a full-stack geospatial intelligence platform designed for satellite imagery and terrain analysis. It enables users to organize projects, define spatial Areas of Interest (AOIs), catalog GeoTIFF rasters, run high-performance terrain derivative algorithms, stream interactive map tiles, execute machine learning hazard forecasting models, and generate validated analytical risk reports.
 
 ---
 
-## Features
-
-### Current
-
-- User authentication and authorization
-- Project management
-- Area of Interest (AOI) management
-- GeoJSON-based spatial APIs
-- PostgreSQL + PostGIS integration
-- Repository and Service Layer architecture
-- Typed API schemas using Pydantic v2
-- Alembic database migrations
-
-### Planned
-
-- Raster upload pipeline
-- Satellite imagery processing
-- Machine learning inference
-- Landslide susceptibility analysis
-- Interactive web maps
-- Background processing
-- Analysis history
-- Exportable reports
-
----
-
-# System Overview
+## 1. System Architecture
 
 ```
-                React + TypeScript
-                        │
-                        ▼
-               FastAPI REST API
-                        │
-        ┌───────────────┴───────────────┐
-        │                               │
- Authentication                 Project Services
-                                        │
-                                   AOI Services
-                                        │
-                                 Geo Conversion
-                                        │
-                             PostgreSQL + PostGIS
-                                        │
-                             Raster Processing
-                                        │
-                              Machine Learning
-                                        │
-                               Analysis Results
+                       Next.js 15 (React 19 + MapLibre GL JS)
+                                     │
+                                     ▼  [REST / Bearer JWT / XYZ Tiles]
+                              FastAPI REST API
+                                     │
+        ┌────────────────────────────┼────────────────────────────┐
+        ▼                            ▼                            ▼
+  Authentication              Project & AOI Services       Raster & Processing Services
+  (JWT / Bcrypt)              (PostGIS Workspaces)         (GDAL / Rasterio / rio-tiler)
+        │                            │                            │
+        └────────────────────────────┼────────────────────────────┘
+                                     ▼
+                            Repository Layer
+                                     │
+                                     ▼
+                      PostgreSQL 16 + PostGIS Engine
+                                     │
+        ┌────────────────────────────┴────────────────────────────┐
+        ▼                                                         ▼
+  Pluggable Storage                                         Local & Distributed Workers
+  (Local Disk / GCS / S3)                                   (9 Terrain Processors / CV / UQ)
 ```
 
-GeoRisk AI follows a layered architecture that separates API routing, business logic, data access, and geospatial processing into independent modules. This design improves maintainability, testability, and future extensibility.
+---
+
+## 2. Technology Stack
+
+### Frontend
+- **Framework**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling & UI**: Tailwind CSS, Radix UI primitives, Lucide Icons, Sonner
+- **Mapping & GIS**: MapLibre GL JS, react-map-gl
+- **State & Data**: TanStack Query v5, Zustand, Axios, React Hook Form, Zod
+
+### Backend & Geospatial Processing
+- **API Framework**: FastAPI, Pydantic v2, Starlette
+- **Database & ORM**: PostgreSQL 16 + PostGIS, SQLAlchemy 2.0 (psycopg3), GeoAlchemy2, Alembic
+- **Geospatial Processing**: GDAL, Rasterio, Shapely, PyProj, GeoPandas, rio-tiler, NumPy
+- **Security**: OAuth2 Bearer JWT, Passlib (Bcrypt)
+
+### Machine Learning & Analytics *(Phases 4A–4B)*
+- **Vision Models**: SegFormer (Multi-class semantic segmentation)
+- **Uncertainty Engine**: Evidential Deep Learning / Entropy UQ
+- **Hazard Analysis**: TerraWatch landslide & risk analysis model
+- **LLM Intelligence**: Validated reporting layer, pgvector RAG
 
 ---
 
-# Technology Stack
+## 3. Verified Implemented Features
 
-## Backend
-
-- FastAPI
-- SQLAlchemy 2.0
-- PostgreSQL
-- PostGIS
-- GeoAlchemy2
-- Alembic
-- Pydantic v2
-- JWT Authentication
-
-## Frontend *(Planned)*
-
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- TanStack Query
-- React Router
-- Leaflet / MapLibre GL
-
-## Geospatial
-
-- GeoJSON
-- Shapely
-- PostGIS
-- Raster processing (planned)
-
-## Machine Learning *(Planned)*
-
-- PyTorch
-- SegFormer
-- Evidential Deep Learning
-- Satellite imagery segmentation
+- ✅ **Authentication & Authorization**: JWT token issuance, password hashing, route protection.
+- ✅ **Project Management**: Multi-project workspaces with ownership isolation and PostGIS transactions.
+- ✅ **Area of Interest (AOI)**: GeoJSON spatial boundary definition, PostGIS geometry validation and spatial queries.
+- ✅ **Raster Upload & Ingestion**: GeoTIFF upload, format validation with Rasterio, spatial metadata extraction (CRS, bounds, resolution, band counts).
+- ✅ **Raster Derivative Processors (9 Registered)**:
+  - `Metadata`: Geospatial metadata extraction.
+  - `Hillshade`: Analytical terrain relief visualization.
+  - `Slope`: Terrain slope calculation (degrees/percent).
+  - `Aspect`: Terrain aspect calculation (degrees from North).
+  - `Color Relief`: Color ramp visualization raster.
+  - `Contour`: Vector contour line/polygon generation.
+  - `Clip`: Spatial clipping to vector AOI boundaries.
+  - `Merge`: Multi-raster mosaicking.
+  - `Reproject`: Coordinate Reference System reprojection.
+- ✅ **Processing Engine & Job Lifecycle**: Asynchronous job tracker, cancellation support, state persistence (`PENDING`, `QUEUED`, `RUNNING`, `CANCELLING`, `COMPLETED`, `FAILED`, `CANCELLED`).
+- ✅ **Tile Server & Visualization**: Dynamic XYZ map tile rendering and TileJSON metadata streaming via `rio-tiler`.
+- ✅ **Raster Previews & Statistics**: In-memory downsampled PNG preview generation, thumbnail rendering, and band statistics/histograms.
+- ✅ **Workspace Interface**: Projects hub, workspace overview, raster catalog feed, upload dialog, processing jobs panel, and project settings.
 
 ---
 
-# Repository Structure
+## 4. Live Deployment Topology
+
+| Component | Platform | URL / Endpoint |
+| :--- | :--- | :--- |
+| **Frontend Web App** | Vercel | `https://georisk-ai-omega.vercel.app` |
+| **FastAPI Backend** | Railway | `https://georisk-ai-production.up.railway.app` |
+| **PostgreSQL / PostGIS** | Neon Cloud | Managed PostgreSQL 16 + PostGIS |
+| **API Health Check** | Railway | `GET https://georisk-ai-production.up.railway.app/api/v1/health/` |
+
+---
+
+## 5. Repository Structure
 
 ```
 GeoRisk-AI/
-
 ├── backend/
-│   ├── app/
-│   ├── migrations/
-│   └── docs/
+│   ├── src/
+│   │   └── app/
+│   │       ├── api/            # FastAPI routers & dependencies
+│   │       ├── core/           # Configuration & logging
+│   │       ├── db/             # SQLAlchemy engine & session management
+│   │       ├── factories/      # Model factories
+│   │       ├── models/         # SQLAlchemy 2.0 ORM models
+│   │       ├── processing/     # Processing framework & 9 processors
+│   │       ├── raster/         # Validation, metadata, & preview generators
+│   │       ├── repositories/   # Clean data access layer
+│   │       ├── schemas/        # Pydantic v2 request/response schemas
+│   │       ├── services/       # Core business logic services
+│   │       └── storage/        # Storage abstraction (Local, GCS, S3)
+│   ├── migrations/             # Alembic database migrations
+│   └── pyproject.toml          # uv Python package configuration
 │
 ├── frontend/
-│   └── docs/
+│   ├── src/
+│   │   ├── api/                # Typed API client modules
+│   │   ├── app/                # Next.js 15 App Router pages & layouts
+│   │   ├── components/         # Modular UI components & dialogs
+│   │   ├── hooks/              # TanStack Query custom hooks
+│   │   ├── lib/                # Axios instance & utility functions
+│   │   ├── stores/             # Zustand state stores
+│   │   └── types/              # TypeScript interface definitions
+│   └── package.json            # npm package configuration
 │
-├── docs/
-│
-├── README.md
-├── ARCHITECTURE.md
-└── PROJECT_CONSTITUTION.md
+└── docs/
+    ├── GEO_RISK_PROJECT_CONTEXT.md  # Master project context & roadmap matrix
+    ├── ARCHITECTURE.md              # Detailed system architecture document
+    ├── DEVELOPMENT_WORKFLOW.md      # Engineering rules & development workflow
+    └── agents.md                    # Instructions for AI coding assistants
 ```
 
 ---
 
-# Quick Start
+## 6. Quick Start (Local Development)
 
-## Backend
+### Prerequisites
+- Python 3.12+ and [uv](https://github.com/astral-sh/uv)
+- Node.js 20+ and npm
+- PostgreSQL 16+ with PostGIS enabled (or Docker)
 
+### Backend Setup
 ```bash
-git clone <repository-url>
-
 cd backend
-
 uv sync
-
 uv run alembic upgrade head
-
-uv run uvicorn app.main:app --reload
+uv run uvicorn app.main:app --reload --port 8000
 ```
+API docs will be available at `http://localhost:8000/docs`.
 
-The API documentation will be available at
-
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
 ```
-http://localhost:8000/docs
-```
+Web app will be available at `http://localhost:3000`.
 
 ---
 
-# Documentation
+## 7. Canonical Documentation & Source of Truth
 
-Project documentation is organized into multiple sections.
+Before making code or architectural changes, refer to the canonical project documents:
 
-| Document | Description |
-|----------|-------------|
-| `ARCHITECTURE.md` | Overall system architecture |
-| `PROJECT_CONSTITUTION.md` | Engineering principles and project rules |
-| `docs/decisions.md` | Architecture Decision Records (ADRs) |
-| `backend/docs/` | Backend documentation |
-| `frontend/docs/` | Frontend documentation |
+1. **Master Project Context**: [`docs/GEO_RISK_PROJECT_CONTEXT.md`](docs/GEO_RISK_PROJECT_CONTEXT.md)
+2. **System Architecture**: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+3. **Engineering Workflow**: [`docs/DEVELOPMENT_WORKFLOW.md`](docs/DEVELOPMENT_WORKFLOW.md)
+4. **Project Constitution**: [`PROJECT_CONSTITUTION.md`](PROJECT_CONSTITUTION.md)
 
----
-
-# Development Workflow
-
-The project follows a layered architecture.
-
-```
-Router
-    │
-    ▼
-Service
-    │
-    ▼
-Repository
-    │
-    ▼
-Database
-```
-
-Geospatial processing follows a dedicated pipeline.
-
-```
-GeoJSON
-
-↓
-
-Validation
-
-↓
-
-Conversion
-
-↓
-
-PostGIS
-
-↓
-
-Database
-```
-
----
-
-# Project Status
-
-Current Phase
-
-- ✅ Authentication
-- ✅ Project Management
-- 🚧 Area of Interest (AOI)
-- ⬜ Raster Processing
-- ⬜ Machine Learning Pipeline
-- ⬜ Frontend Development
-- ⬜ Deployment
-
----
-
-# Design Principles
-
-GeoRisk AI is built around several core principles.
-
-- Separation of concerns
-- Clean architecture
-- Type safety
-- Async-first backend
-- GeoJSON as the public API format
-- PostGIS as the internal spatial engine
-- Explicit dependency injection
-- Comprehensive documentation
-
----
-
-# Contributing
-
-Before contributing, please read:
-
-- `PROJECT_CONSTITUTION.md`
-- `ARCHITECTURE.md`
-
-These documents define the project's engineering standards, architectural decisions, and development workflow.
-
----
-
-# License
-
-This project is currently under active development.
-
-A license will be added prior to the first public release.
-
----
-
-# Acknowledgements
-
-GeoRisk AI is being developed as a modern geospatial intelligence platform combining GIS technologies, machine learning, and scalable backend architecture.
+> **Source of Truth Rule**:
+> Implementation status is determined from the repository's actual source code, tests, migrations, and deployment configuration. The roadmap describes intended ordering, but must not be treated as evidence that a feature is implemented.

@@ -1763,40 +1763,38 @@ When repository implementation and documentation disagree:
 
 ---
 
-# 48. Current Architectural Priority
+# 48. Implementation Status & Architectural Priority
 
-Current phase:
+Implementation status and priorities are dynamically determined from the
+**Milestone Completion Matrix** in [`docs/GEO_RISK_PROJECT_CONTEXT.md`](GEO_RISK_PROJECT_CONTEXT.md).
 
-```text
-Phase 2.3 — Raster Derivatives
-```
+> **Source of Truth Rule:**
+> Implementation status is determined from the repository's actual source code,
+> tests, migrations, and deployment configuration. The roadmap describes intended
+> ordering, but must not be treated as evidence that a feature is implemented.
 
-Immediate implementation:
-
-```text
-Contour
-```
-
-Then:
+### Roadmap Progression
 
 ```text
-Clip
-Merge
-Reproject
+Phase 1: Core Platform (Complete)
+    ↓
+Phase 2.1–2.3: Processing Engine & All 9 Raster Processors (Complete)
+    ↓
+Phase 2.4: Raster Preview & Statistics (Complete; Path Resolution Hardening)
+    ↓
+Phase 2.5: Next.js Workspace Shell (Complete; Route Aliasing Hardening)
+    ↓
+Phase 3: Interactive GIS & MapLibre Tile Viewer (In Progress)
+    ↓
+Phase 4A: SegFormer + Uncertainty + TerraWatch Cascaded AI (Planned)
+    ↓
+Phase 4B: Validated Uncertainty-Aware LLM Reporting & RAG (Planned)
+    ↓
+Phases 5–9: Cloud Scaling, Data Engineering, Observability & Enterprise
 ```
 
-After Phase 2.3:
-
-```text
-Phase 2.4 — Raster Preview
-        ↓
-Phase 2.5 — Workspace
-        ↓
-Phase 3 — Interactive GIS
-```
-
-The AI pipeline must not be implemented before the geospatial foundation
-is sufficiently complete.
+The AI pipeline (Phase 4A/4B) must not be implemented before the geospatial
+and interactive GIS foundation is complete and verified.
 
 ---
 

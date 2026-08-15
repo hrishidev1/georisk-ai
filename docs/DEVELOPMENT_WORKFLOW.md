@@ -1291,34 +1291,19 @@ Architecturally consistent
 
 ---
 
-# 42. Current Development Priority
+# 42. Development Priority & Milestone Alignment
 
-At the time this workflow was established:
+Development priorities are determined from the verified
+**Milestone Completion Matrix** in [`docs/GEO_RISK_PROJECT_CONTEXT.md`](GEO_RISK_PROJECT_CONTEXT.md).
 
-```text
-Phase 2.3 — Raster Derivatives
-```
+> **Source of Truth Rule:**
+> Implementation status is determined from the repository's actual source code,
+> tests, migrations, and deployment configuration. The roadmap describes intended
+> ordering, but must not be treated as evidence that a feature is implemented.
 
-Completed:
-
-```text
-Metadata
-Hillshade
-Slope
-Aspect
-Color Relief
-```
-
-Remaining:
-
-```text
-Contour
-Clip
-Merge
-Reproject
-```
-
-Do not skip to Phase 3 or Phase 4 unless explicitly requested.
+Always consult the active milestone matrix before undertaking work. Do not skip
+to downstream phases (e.g. AI inference or cloud infrastructure) unless current
+milestones and hardening items are resolved or explicitly requested.
 
 ---
 

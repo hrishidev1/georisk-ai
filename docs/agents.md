@@ -68,45 +68,23 @@ Do not implement the entire target architecture prematurely.
 
 ---
 
-# 3. Current Phase
+# 3. Implementation Status & Milestone Alignment
 
-Always determine the current phase from:
+Always determine implementation status from:
 
 ```text
 docs/GEO_RISK_PROJECT_CONTEXT.md
 ```
 
-Do not assume that planned functionality has already been implemented.
+> **Source of Truth Rule:**
+> Implementation status is determined from the repository's actual source code,
+> tests, migrations, and deployment configuration. The roadmap describes intended
+> ordering, but must not be treated as evidence that a feature is implemented.
 
-At the current project state:
+Consult the **Milestone Completion Matrix** in `GEO_RISK_PROJECT_CONTEXT.md` to
+identify completed capabilities, active work, and pending hardening tasks.
 
-```text
-Phase 2.3 — Raster Derivatives
-```
-
-Completed:
-
-```text
-Metadata
-Hillshade
-Slope
-Aspect
-Color Relief
-```
-
-Remaining:
-
-```text
-Contour
-Clip
-Merge
-Reproject
-```
-
-The next implementation step is determined by the current project context
-and explicit user instruction.
-
-Do not skip ahead to Phase 3 or Phase 4 unless explicitly requested.
+Do not skip ahead to downstream phases unless explicitly requested.
 
 ---
 
@@ -823,25 +801,19 @@ The roadmap contains future phases.
 
 Future phases are not permission to implement them now.
 
-Current phase takes priority.
+Active milestones and hardening priorities take precedence.
 
 Example:
 
-If the current task is:
-
-```text
-Phase 2.3 → Contour
-```
-
+If the current task involves Phase 3 interactive GIS or Phase 2 hardening,
 do not start:
 
 ```text
-MapLibre
-Tile caching
 SegFormer
+Uncertainty Engine
 TerraWatch
 Celery
-GCS
+GCS/S3 Cloud Storage
 BigQuery
 ```
 
