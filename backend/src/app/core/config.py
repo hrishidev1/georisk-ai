@@ -9,13 +9,14 @@ place to validate it.
 """
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated, Any, Literal
 
-from pydantic import AnyHttpUrl, BeforeValidator, PostgresDsn, computed_field, Field
+from pydantic import AnyHttpUrl, BeforeValidator, Field, PostgresDsn, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pathlib import Path
 
-BASE_DIR = Path(__file__).resolve().parents[4]
+
+BASE_DIR = Path(__file__).resolve().parents[3]
 
 def _parse_cors_origins(value: Any) -> Any:
     """
@@ -57,13 +58,14 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
+    
     # --- Core app metadata ---
     PROJECT_NAME: str = "GeoRisk AI"
     API_VERSION: str = "0.1.0"
     # Renamed from ENVIRONMENT -> APP_ENV per architecture review, to avoid
     # colliding with the generic word "environment" used by tooling
     # (Docker Compose, CI, cloud providers) and to read unambiguously as
-    # "which app environment is this" in logs/dashboards.
+    # "which app environment this is" in logs/dashboards.
     APP_ENV: Literal["local", "staging", "production"] = "local"
     API_V1_PREFIX: str = "/api/v1"
     DEBUG: bool = False
@@ -90,8 +92,14 @@ class Settings(BaseSettings):
     ] = []
 
     # --- Database ---
-    # Individual fields (rather than one raw URL) so Docker/K8s secrets can
-    # inject each piece independently, and so we can validate each part.
+    # A complete DATABASE_URL is preferred when supplied by a managed
+    # PostgreSQL provider such as Neon. The discrete POSTGRES_* fields
+    # remain as a fallback for local Docker development.
+    DATABASE_URL_ENV: PostgresDsn | None = Field(
+        default=None,
+        validation_alias="DATABASE_URL",
+    )
+
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_HOST: str = "db"
@@ -125,13 +133,16 @@ class Settings(BaseSettings):
     @property
     def DATABASE_URL(self) -> str:
         """
-        Build the SQLAlchemy 2.x connection string from the discrete
-        POSTGRES_* fields above.
+        Build the SQLAlchemy 2.x connection string.
 
-        The SSL requirement is included in the DSN so managed PostgreSQL
-        providers such as Neon can be used without introducing a separate
-        database configuration path.
+        A complete DATABASE_URL supplied by the environment is preferred
+        so managed PostgreSQL providers such as Neon can supply pooled
+        endpoints and SSL parameters. When it is absent, the discrete
+        POSTGRES_* fields are used as the local-development fallback.
         """
+        if self.DATABASE_URL_ENV is not None:
+            return str(self.DATABASE_URL_ENV)
+
         dsn = PostgresDsn.build(
             scheme="postgresql+psycopg",
             username=self.POSTGRES_USER,
@@ -160,6 +171,5 @@ def get_settings() -> Settings:
     instead of re-reading the environment on every call.
     """
     return Settings()
-
 
 settings = get_settings()
