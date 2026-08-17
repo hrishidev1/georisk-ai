@@ -44,3 +44,30 @@ def test_get_raster_point_endpoint(client: TestClient, mock_user: User):
     assert data["is_valid"] is True
     assert data["crs"] == "EPSG:4326"
     assert mock_service.inspect_point.called
+
+
+def test_get_raster_preview_not_found(client: TestClient, mock_user: User):
+    from app.exceptions import RasterNotFoundError
+
+    mock_service = MagicMock()
+    mock_service.get_preview.side_effect = RasterNotFoundError()
+
+    app.dependency_overrides[get_raster_service] = lambda: mock_service
+
+    response = client.get("/api/v1/projects/1/rasters/999/preview.png")
+    assert response.status_code == 404
+    assert "Raster not found" in response.json()["detail"]
+
+
+def test_get_raster_statistics_not_found(client: TestClient, mock_user: User):
+    from app.exceptions import RasterNotFoundError
+
+    mock_service = MagicMock()
+    mock_service.get_statistics.side_effect = RasterNotFoundError()
+
+    app.dependency_overrides[get_raster_service] = lambda: mock_service
+
+    response = client.get("/api/v1/projects/1/rasters/999/statistics")
+    assert response.status_code == 404
+    assert "Raster not found" in response.json()["detail"]
+

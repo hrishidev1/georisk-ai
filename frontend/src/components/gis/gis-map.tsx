@@ -270,7 +270,10 @@ export function GISMap({
         rasters.map((raster) => {
           const isVisible = rasterVisibility[raster.id] ?? true;
           const opacity = rasterOpacity[raster.id] ?? 0.85;
-          const tileUrl = `/api/v1/projects/${projectId}/rasters/${raster.id}/tiles/{z}/{x}/{y}.png`;
+          const apiBase = process.env.NEXT_PUBLIC_API_URL
+            ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
+            : "/api/v1";
+          const tileUrl = `${apiBase}/projects/${projectId}/rasters/${raster.id}/tiles/{z}/{x}/{y}.png`;
 
           if (!isVisible) return null;
 

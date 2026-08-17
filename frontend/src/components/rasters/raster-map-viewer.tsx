@@ -70,7 +70,10 @@ export function RasterMapViewer({ raster }: RasterMapViewerProps) {
   const [aoiDescription, setAoiDescription] = useState("");
 
   // Tile URL for raster
-  const tileUrl = `/api/v1/projects/${raster.project_id}/rasters/${raster.id}/tiles/{z}/{x}/{y}.png`;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api/v1`
+    : "/api/v1";
+  const tileUrl = `${apiBase}/projects/${raster.project_id}/rasters/${raster.id}/tiles/{z}/{x}/{y}.png`;
 
   // Selected AOI object
   const selectedAOI = useMemo(() => {

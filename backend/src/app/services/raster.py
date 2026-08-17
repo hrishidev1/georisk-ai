@@ -275,6 +275,8 @@ class RasterService:
         )
         raster = self._require_raster(project_id, raster_id)
         resolved_path = self._storage.resolve_path(Path(raster.file_path))
+        if not resolved_path.exists():
+            raise RasterNotFoundError()
 
         return RasterPreview.generate_preview(resolved_path)
 
@@ -290,6 +292,8 @@ class RasterService:
         )
         raster = self._require_raster(project_id, raster_id)
         resolved_path = self._storage.resolve_path(Path(raster.file_path))
+        if not resolved_path.exists():
+            raise RasterNotFoundError()
 
         return RasterPreview.generate_thumbnail(resolved_path)
 
@@ -305,6 +309,8 @@ class RasterService:
         )
         raster = self._require_raster(project_id, raster_id)
         resolved_path = self._storage.resolve_path(Path(raster.file_path))
+        if not resolved_path.exists():
+            raise RasterNotFoundError()
 
         stats = RasterPreview.extract_statistics(resolved_path)
         return RasterStatisticsResponse(bands=stats)
@@ -323,6 +329,8 @@ class RasterService:
         )
         raster = self._require_raster(project_id, raster_id)
         resolved_path = self._storage.resolve_path(Path(raster.file_path))
+        if not resolved_path.exists():
+            raise RasterNotFoundError()
 
         data = RasterPreview.inspect_point(resolved_path, lon, lat)
         return RasterPointInspectionResponse(**data)

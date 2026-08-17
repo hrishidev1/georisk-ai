@@ -53,9 +53,9 @@ export function RasterList({ projectId }: RasterListProps) {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {rasters.map((raster) => (
         <Card key={raster.id} className="rounded-[24px] border border-slate-200/80 bg-white shadow-sm overflow-hidden flex flex-col">
-          <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50/50 to-transparent flex justify-between items-start">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
+          <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50/50 to-transparent flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="inline-flex rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 tracking-wider">
                   {raster.type}
                 </span>
@@ -65,18 +65,18 @@ export function RasterList({ projectId }: RasterListProps) {
                   </span>
                 )}
               </div>
-              <h3 className="text-lg font-bold text-[#1A1D20]">{raster.name}</h3>
+              <h3 className="text-base sm:text-lg font-bold text-[#1A1D20] truncate" title={raster.name}>{raster.name}</h3>
               {raster.description && (
                 <p className="text-xs text-slate-500 line-clamp-1">{raster.description}</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
               <Link href={`/projects/${raster.project_id}/map?raster=${raster.id}`}>
                 <Button
                   variant="outline"
-                  className="gap-2 rounded-full px-4 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0B57D0]"
+                  className="gap-1.5 rounded-full px-3 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0B57D0]"
                 >
-                  <MapIcon className="h-4 w-4 text-[#0B57D0]" />
+                  <MapIcon className="h-3.5 w-3.5 text-[#0B57D0]" />
                   <span>View on Map</span>
                 </Button>
               </Link>

@@ -1,4 +1,13 @@
-export type ProcessorType = "metadata" | "hillshade" | "slope" | "aspect";
+export type ProcessorType =
+  | "metadata"
+  | "hillshade"
+  | "slope"
+  | "aspect"
+  | "color_relief"
+  | "custom"
+  | "clip"
+  | "merge"
+  | "reproject";
 export type ProcessingStatus =
   | "PENDING"
   | "QUEUED"
