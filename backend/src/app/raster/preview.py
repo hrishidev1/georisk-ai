@@ -128,3 +128,75 @@ class RasterPreview:
             The rendered PNG thumbnail data.
         """
         return RasterPreview.generate_preview(path, max_size=max_size)
+
+    @staticmethod
+    def inspect_point(path: Path, lon: float, lat: float) -> dict:
+        """
+        Sample raster pixel band values and metadata at a geographic coordinate (EPSG:4326).
+
+        Parameters
+        ----------
+        path : Path
+            Path to the raster dataset.
+        lon : float
+            Longitude in EPSG:4326.
+        lat : float
+            Latitude in EPSG:4326.
+
+        Returns
+        -------
+        dict
+            Dictionary containing coordinates, band values, validity, and CRS.
+        """
+        from rio_tiler.errors import PointOutsideBounds
+
+        try:
+            with Reader(str(path)) as src:
+                bounds = src.get_geographic_bounds(src.crs)
+                minx, miny, maxx, maxy = bounds
+                in_bounds = (minx <= lon <= maxx) and (miny <= lat <= maxy)
+
+                if not in_bounds:
+                    return {
+                        "coordinates": [lon, lat],
+                        "values": {},
+                        "is_valid": False,
+                        "crs": str(src.crs),
+                        "bounds": list(bounds),
+                        "message": "Coordinates outside raster geographic bounds",
+                    }
+
+                try:
+                    pt_data = src.point(lon, lat)
+                    values = {}
+                    band_names = pt_data.band_names or [f"band_{i+1}" for i in range(len(pt_data.data))]
+                    for idx, name in enumerate(band_names):
+                        val = float(pt_data.data[idx])
+                        if np.isnan(val) or np.isinf(val):
+                            values[name] = None
+                        else:
+                            values[name] = val
+
+                    is_valid = any(v is not None for v in values.values())
+
+                    return {
+                        "coordinates": [lon, lat],
+                        "values": values,
+                        "is_valid": is_valid,
+                        "crs": str(src.crs),
+                        "bounds": list(bounds),
+                        "message": "Valid point sample" if is_valid else "NoData at location",
+                    }
+                except PointOutsideBounds:
+                    return {
+                        "coordinates": [lon, lat],
+                        "values": {},
+                        "is_valid": False,
+                        "crs": str(src.crs),
+                        "bounds": list(bounds),
+                        "message": "Point outside raster bounds",
+                    }
+        except Exception as e:
+            if isinstance(e, RasterError):
+                raise
+            raise CorruptedRasterError(f"Failed to sample raster point: {e}") from e

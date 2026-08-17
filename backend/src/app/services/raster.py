@@ -24,8 +24,9 @@ from app.raster.models import RasterMetadata
 from app.repositories import RasterRepository
 from app.schemas.raster import (
     RasterCreate,
-    RasterUpdate,
+    RasterPointInspectionResponse,
     RasterStatisticsResponse,
+    RasterUpdate,
 )
 from app.services.project_access import ProjectAccessService
 from app.storage.base import StorageService
@@ -273,8 +274,9 @@ class RasterService:
             current_user.id,
         )
         raster = self._require_raster(project_id, raster_id)
+        resolved_path = self._storage.resolve_path(Path(raster.file_path))
 
-        return RasterPreview.generate_preview(Path(raster.file_path))
+        return RasterPreview.generate_preview(resolved_path)
 
     def get_thumbnail(
         self,
@@ -287,8 +289,9 @@ class RasterService:
             current_user.id,
         )
         raster = self._require_raster(project_id, raster_id)
+        resolved_path = self._storage.resolve_path(Path(raster.file_path))
 
-        return RasterPreview.generate_thumbnail(Path(raster.file_path))
+        return RasterPreview.generate_thumbnail(resolved_path)
 
     def get_statistics(
         self,
@@ -301,9 +304,28 @@ class RasterService:
             current_user.id,
         )
         raster = self._require_raster(project_id, raster_id)
+        resolved_path = self._storage.resolve_path(Path(raster.file_path))
 
-        stats = RasterPreview.extract_statistics(Path(raster.file_path))
+        stats = RasterPreview.extract_statistics(resolved_path)
         return RasterStatisticsResponse(bands=stats)
+
+    def inspect_point(
+        self,
+        project_id: int,
+        raster_id: int,
+        lon: float,
+        lat: float,
+        current_user: User,
+    ) -> RasterPointInspectionResponse:
+        self._project_access_service.get_owned_project(
+            project_id,
+            current_user.id,
+        )
+        raster = self._require_raster(project_id, raster_id)
+        resolved_path = self._storage.resolve_path(Path(raster.file_path))
+
+        data = RasterPreview.inspect_point(resolved_path, lon, lat)
+        return RasterPointInspectionResponse(**data)
 
     # ------------------------------------------------------------------
     # Processing

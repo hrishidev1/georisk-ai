@@ -24,7 +24,9 @@ from app.schemas.aoi import (
 
 from app.schemas.raster import (
     RasterCreate,
+    RasterPointInspectionResponse,
     RasterResponse,
+    RasterStatisticsResponse,
     RasterUpdate,
 )
 
@@ -51,6 +53,8 @@ __all__ = [
     "RasterCreate",
     "RasterResponse",
     "RasterUpdate",
+    "RasterStatisticsResponse",
+    "RasterPointInspectionResponse",
     "ProcessingJobListResponse",
     "ProcessingJobResponse",
     "ProcessingRequest",

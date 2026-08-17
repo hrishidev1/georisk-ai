@@ -1,5 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { uploadRaster, listRasters, getRaster, deleteRaster, getRasterPreview, getRasterStatistics } from "@/api/rasters";
+import {
+  uploadRaster,
+  listRasters,
+  getRaster,
+  deleteRaster,
+  getRasterPreview,
+  getRasterStatistics,
+  inspectRasterPoint,
+} from "@/api/rasters";
 import type { RasterCreate } from "@/types/raster";
 
 export const rasterKeys = {
@@ -44,6 +52,20 @@ export function useRasterStatistics(projectId: number, rasterId: number) {
     queryKey: rasterKeys.statistics(projectId, rasterId),
     queryFn: () => getRasterStatistics(projectId, rasterId),
     enabled: !!projectId && !!rasterId,
+  });
+}
+
+export function useInspectRasterPoint(projectId: number) {
+  return useMutation({
+    mutationFn: ({
+      rasterId,
+      lon,
+      lat,
+    }: {
+      rasterId: number;
+      lon: number;
+      lat: number;
+    }) => inspectRasterPoint(projectId, rasterId, lon, lat),
   });
 }
 

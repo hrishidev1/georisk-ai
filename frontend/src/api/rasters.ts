@@ -1,5 +1,10 @@
 import api from "@/lib/axios";
-import type { RasterResponse, RasterCreate, RasterStatisticsResponse } from "@/types/raster";
+import type {
+  RasterResponse,
+  RasterCreate,
+  RasterStatisticsResponse,
+  RasterPointInspectionResponse,
+} from "@/types/raster";
 
 export async function uploadRaster(
   projectId: number,
@@ -7,10 +12,10 @@ export async function uploadRaster(
   file: File
 ): Promise<RasterResponse> {
   const formData = new FormData();
-  formData.append("name", data.name);
+  formData.append("name", data.name.trim());
   formData.append("type", data.type);
-  if (data.description) {
-    formData.append("description", data.description);
+  if (data.description && data.description.trim()) {
+    formData.append("description", data.description.trim());
   }
   formData.append("file", file);
 
@@ -19,7 +24,7 @@ export async function uploadRaster(
     formData,
     {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": undefined,
       },
     }
   );
@@ -65,6 +70,21 @@ export async function getRasterStatistics(
 ): Promise<RasterStatisticsResponse> {
   const response = await api.get<RasterStatisticsResponse>(
     `/projects/${projectId}/rasters/${rasterId}/statistics`
+  );
+  return response.data;
+}
+
+export async function inspectRasterPoint(
+  projectId: number,
+  rasterId: number,
+  lon: number,
+  lat: number
+): Promise<RasterPointInspectionResponse> {
+  const response = await api.get<RasterPointInspectionResponse>(
+    `/projects/${projectId}/rasters/${rasterId}/point`,
+    {
+      params: { lon, lat },
+    }
   );
   return response.data;
 }

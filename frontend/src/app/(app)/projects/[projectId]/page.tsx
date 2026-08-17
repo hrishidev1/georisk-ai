@@ -115,9 +115,12 @@ export default function WorkspaceOverviewPage() {
                 ? `Latest: ${aois[0].name}`
                 : "EPSG:4326 PostGIS"}
             </span>
-            <span className="text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full">
-              Active
-            </span>
+            <Link
+              href={`/projects/${projectId}/map`}
+              className="text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-0.5 rounded-full hover:bg-emerald-100 transition-colors"
+            >
+              Open Map
+            </Link>
           </div>
         </Card>
 

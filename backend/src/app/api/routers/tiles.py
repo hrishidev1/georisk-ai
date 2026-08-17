@@ -102,7 +102,7 @@ def get_tilejson(
 
     try:
         with Reader(raster_path) as src:
-            bounds = src.geographic_bounds
+            bounds = src.get_geographic_bounds(src.crs)
             minzoom = src.minzoom
             maxzoom = src.maxzoom
 

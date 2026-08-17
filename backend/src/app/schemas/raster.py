@@ -101,3 +101,12 @@ class RasterBandStatistics(BaseModel):
 
 class RasterStatisticsResponse(BaseModel):
     bands: dict[str, RasterBandStatistics]
+
+
+class RasterPointInspectionResponse(BaseModel):
+    coordinates: list[float]
+    values: dict[str, float | None]
+    is_valid: bool
+    crs: str | None = None
+    bounds: list[float] | None = None
+    message: str | None = None

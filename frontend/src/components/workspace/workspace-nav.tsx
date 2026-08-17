@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Settings, MapPin, Layers, Activity, Lock } from "lucide-react";
+import { LayoutDashboard, Settings, MapPin, Layers, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WorkspaceNavProps {
@@ -19,6 +19,12 @@ export function WorkspaceNav({ projectId }: WorkspaceNavProps) {
       href: `/projects/${projectId}`,
       icon: LayoutDashboard,
       exact: true,
+    },
+    {
+      name: "Interactive GIS & AOIs",
+      href: `/projects/${projectId}/map`,
+      icon: MapPin,
+      exact: false,
     },
     {
       name: "Raster Imagery Catalog",
@@ -38,10 +44,6 @@ export function WorkspaceNav({ projectId }: WorkspaceNavProps) {
       icon: Settings,
       exact: false,
     },
-  ];
-
-  const futureTabs = [
-    { name: "Interactive Map & AOIs", icon: MapPin, sprint: "Sprint 2" },
   ];
 
   return (
@@ -75,28 +77,7 @@ export function WorkspaceNav({ projectId }: WorkspaceNavProps) {
           );
         })}
       </div>
-
-      <div className="h-6 w-px bg-slate-200 mx-3 shrink-0" />
-
-      {/* Reserved future GIS expansion placeholders */}
-      <div className="flex items-center gap-2 select-none pointer-events-none opacity-65 shrink-0">
-        {futureTabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <div
-              key={tab.name}
-              className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium bg-slate-50 border border-slate-200/60 text-slate-500 whitespace-nowrap"
-            >
-              <Icon className="h-3.5 w-3.5 text-slate-400" />
-              <span>{tab.name}</span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-200/70 px-2 py-0.5 text-[10px] font-semibold text-slate-600 ml-0.5">
-                <Lock className="h-2.5 w-2.5" />
-                {tab.sprint}
-              </span>
-            </div>
-          );
-        })}
-      </div>
     </nav>
   );
 }
+

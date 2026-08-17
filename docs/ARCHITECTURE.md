@@ -807,30 +807,33 @@ and are invoked through processors.
 
 # 18. Phase 3 GIS Architecture
 
-Phase 3 introduces interactive GIS.
+Phase 3 implements an end-to-end interactive GIS workspace.
 
-Conceptually:
+### 18.1 High-Level GIS Data Flow
 
 ```text
-MapLibre
-    ↓
-FastAPI
-    ↓
-GIS Services
-    ↓
-PostGIS / Raster Storage
+MapLibre GL JS / react-map-gl
+    │
+    ├── Vector Layers & AOI Geometries ──► REST API ──► PostGIS (EPSG:4326)
+    ├── Raster Tiles (XYZ / TileJSON)  ──► Tile API ──► rio-tiler ──► GeoTIFF
+    ├── Pixel / Coordinate Sampling    ──► Point API ─► rio-tiler ──► Band Data
+    └── Geodesic Calculations          ──► Client-side spherical excess & Haversine
 ```
 
-Capabilities:
+### 18.2 Frontend Modular Workspace Structure
 
-* Raster tiles
-* Vector/GeoJSON layers
-* AOI drawing
-* AOI editing
-* Spatial queries
-* Geometry validation
-* Raster clipping
-* Coordinate inspection
+The GIS workspace is architected as modular, decoupled components:
+
+- **`GISWorkspace`**: Master workspace orchestrator managing active tool modes, layer state, and selected features.
+- **`GISMap`**: MapLibre canvas encapsulating basemap, raster tile sources, vector GeoJSON layers, and draggable vertex markers.
+- **`MapToolbar`**: Contextual toolbar for tool switching (Select/Pan, Draw AOI, Measure Distance, Measure Area, Inspect Pixel).
+- **`MapControls`**: Compact control stack for zooming, fit project extent, basemap switching, and layer panel toggling.
+- **`LayerPanel`**: Multi-layer management panel for raster visibility, opacity sliders, active XYZ tile layer selection, and vector AOI layers.
+- **`AOIInspector`**: Selected AOI properties card providing geodesic area metrics (ha, km², m²), extent zooming, geometry editing, and deletion.
+- **`PixelInspector`**: Coordinate and raster point value sampling HUD querying the backend for band values and nodata flags.
+- **`MeasurementHUD`**: Real-time geodesic distance (Haversine) and spherical polygon area readout.
+- **`SaveAOIDialog`**: Modal for validating and saving drawn polygons into PostGIS EPSG:4326.
+
 
 ---
 
@@ -1784,7 +1787,7 @@ Phase 2.4: Raster Preview & Statistics (Complete; Path Resolution Hardening)
     ↓
 Phase 2.5: Next.js Workspace Shell (Complete; Route Aliasing Hardening)
     ↓
-Phase 3: Interactive GIS & MapLibre Tile Viewer (In Progress)
+Phase 3: Interactive GIS & MapLibre Workspace (Complete)
     ↓
 Phase 4A: SegFormer + Uncertainty + TerraWatch Cascaded AI (Planned)
     ↓

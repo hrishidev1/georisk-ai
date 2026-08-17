@@ -51,3 +51,12 @@ export interface RasterBandStatistics {
 export interface RasterStatisticsResponse {
   bands: Record<string, RasterBandStatistics>;
 }
+
+export interface RasterPointInspectionResponse {
+  coordinates: [number, number];
+  values: Record<string, number | null>;
+  is_valid: boolean;
+  crs?: string | null;
+  bounds?: number[] | null;
+  message?: string | null;
+}

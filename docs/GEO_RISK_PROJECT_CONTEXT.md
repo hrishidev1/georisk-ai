@@ -97,16 +97,20 @@ The following capabilities are verified present in the repository source code:
   8. `MergeProcessor`: Multi-raster mosaic and compositing.
   9. `ReprojectProcessor`: Coordinate reference system reprojection.
 
-### Visualization, Tile Streaming & Workspace UI
-- **Raster Tile Server**: Dynamic XYZ map tile rendering and TileJSON 2.2.0 metadata generation using `rio-tiler` (`/api/v1/projects/{id}/rasters/{id}/tiles/*`).
-- **Raster Preview & Statistics**: In-memory downsampled PNG preview generation, thumbnail creation, band min/max/mean/std calculation, and histogram computation (`RasterPreview`).
+### Visualization, Tile Streaming & Interactive GIS (Phase 3 Complete)
+- **Interactive GIS Workspace**: Full-canvas MapLibre GL workspace (`/projects/[projectId]/map`) with layer management, basemap switcher (Carto Positron, Dark Matter, Voyager), contextual toolbars, and responsive overlays.
+- **Raster Tile Streaming & Sampling**: Dynamic XYZ tile streaming (`/tiles/{z}/{x}/{y}.png`), TileJSON 2.2.0 metadata (`/tilejson.json`), and coordinate point sampling (`/projects/{id}/rasters/{id}/point?lon={lon}&lat={lat}`) using `rio-tiler`.
+- **Raster Preview & Statistics**: In-memory downsampled PNG preview generation, thumbnail creation, band min/max/mean/std calculation, and histogram computation (`RasterPreview`) with resolved storage paths.
+- **Vector AOI Management & Editing**: On-canvas polygon drawing, rubber-band preview, draggable vertex modification, geodesic area calculation (ha / km² / m²), and PostGIS EPSG:4326 persistence.
+- **Geodesic Measurement & Inspection HUD**: High-precision Haversine distance and spherical polygon excess calculations, live cursor coordinates with click-to-copy, and on-map pixel value sampling HUD.
 - **Next.js 15 Web Workspace**:
   - Projects Hub & Repository feed (`/dashboard`)
   - Workspace Overview (`/projects/[projectId]`)
-  - Raster Imagery Catalog & Upload modal (`/projects/[projectId]/rasters`)
-  - Interactive MapLibre GL Tile Viewer (`RasterMapViewer`)
+  - Interactive GIS & AOIs (`/projects/[projectId]/map`)
+  - Raster Imagery Catalog & Fixed Multipart Upload (`/projects/[projectId]/rasters`)
   - Processing Jobs Console & Task submission (`/projects/[projectId]/processing`)
-  - Project Settings & Danger Zone (`/projects/[projectId]/settings`)
+  - Project Settings & Configuration (`/projects/[projectId]/settings`)
+  - Route alias at `/projects` redirecting to `/dashboard`
 
 ---
 
@@ -118,10 +122,10 @@ The following capabilities are verified present in the repository source code:
 | **Phase 2.1: Processing Framework** | Processor base, Context, Results, Registry, Manager, LocalExecutor | **COMPLETE** | `backend/src/app/processing/` | Core abstraction extensible for any GDAL/Rasterio algorithm. |
 | **Phase 2.2: Processing Jobs** | Job persistence, tracker, lifecycle states, cancel support, job APIs | **COMPLETE** | `ProcessingJobTracker`, `ProcessingJobRepository`, `routers/processing.py` | Hardening item: transaction rollback before persisting FAILED state. |
 | **Phase 2.3: Raster Derivatives** | Hillshade, Slope, Aspect, Color Relief, Contour, Clip, Merge, Reproject | **COMPLETE** | All 9 processors in `processors/`, registered in `factory.py` | Multi-input lineage supported via `raster_lineage` table. |
-| **Phase 2.4: Raster Preview & Stats** | Downsampled PNG previews, thumbnails, band statistics & histograms | **COMPLETE** | `RasterPreview` in `app/raster/preview.py`, endpoints in `routers/raster.py` | Hardening item: storage path resolution (`resolve_path`) in service layer. |
-| **Phase 2.5: Workspace UI** | Projects Hub, Workspace dashboard, Raster catalog, Processing panel | **COMPLETE** | Next.js routes under `frontend/src/app/(app)/` | Hardening item: redirect/page alias for `/projects` route. |
-| **Phase 3: Interactive GIS** | Tile server, MapLibre viewer, AOI drawing, layer inspector, GeoJSON | **IN PROGRESS** | Tile endpoints in `tiles.py`, `RasterMapViewer` in frontend, AOI APIs in `aoi.py` | Tile streaming works; interactive map canvas vector drawing tools remaining. |
-| **Phase 4A.1: SegFormer** | Vision Transformer semantic segmentation, mask generation, provenance | **NOT STARTED** | Planned | Research research basis established; integration pending Phase 3 completion. |
+| **Phase 2.4: Raster Preview & Stats** | Downsampled PNG previews, thumbnails, band statistics & histograms | **COMPLETE** | `RasterPreview` in `app/raster/preview.py`, endpoints in `routers/raster.py` | Path resolution with `resolve_path` implemented. |
+| **Phase 2.5: Workspace UI** | Projects Hub, Workspace dashboard, Raster catalog, Processing panel | **COMPLETE** | Next.js routes under `frontend/src/app/(app)/` | Breadcrumb alias at `/projects` implemented. |
+| **Phase 3: Interactive GIS** | Full GIS workspace, XYZ tiles, point sampling, AOI drawing/editing/delete, measurement, basemaps | **COMPLETE** | `frontend/src/components/gis/`, `/map/page.tsx`, `point` API in `raster.py`, `rio-tiler` Reader | End-to-end interactive geospatial intelligence workspace complete. |
+| **Phase 4A.1: SegFormer** | Vision Transformer semantic segmentation, mask generation, provenance | **NOT STARTED** | Planned | Research basis established; next phase in roadmap. |
 | **Phase 4A.2: Uncertainty Engine** | Pixel-wise UQ raster (0.0=confident, 1.0=uncertain), entropy/margin | **NOT STARTED** | Planned | Authoritative analytical raster output. |
 | **Phase 4A.3: TerraWatch** | Landslide risk score raster, hazard maps, terrain + CV integration | **NOT STARTED** | Planned | Consumes Phase 4A.1/4A.2 persisted artifacts. |
 | **Phase 4A.4: Cascaded Orchestration** | Two-stage pipeline (SegFormer → TerraWatch), artifact dependency | **NOT STARTED** | Planned | Stage 1 artifacts strictly persisted before Stage 2 execution. |
@@ -134,19 +138,14 @@ The following capabilities are verified present in the repository source code:
 
 # 6. Current Remaining Work & Hardening Priorities
 
-Based on current repository state, immediate engineering work focuses on production hardening and concluding Phase 3 Interactive GIS:
+Based on current repository state, immediate engineering work focuses on production hardening and preparing for Phase 4A (Computer Vision & Hazard Intelligence):
 
-1. **Storage Path Resolution in Service Layer (Phase 2.4 Hardening)**:
-   - `RasterService.get_preview()` and `RasterService.get_statistics()` must pass `self._storage.resolve_path(Path(raster.file_path))` to `RasterPreview` so relative storage paths resolve correctly against `STORAGE_ROOT`.
-2. **Frontend Routing Aliasing (Phase 2.5 Hardening)**:
-   - Add a page or redirect at `/projects` to `/dashboard` so breadcrumb links do not generate 404 responses.
-3. **Transaction Rollback Hardening (Phase 2.2 Hardening)**:
+1. **Transaction Rollback Hardening (Phase 2.2 Hardening)**:
    - Ensure failed database transactions roll back cleanly before writing `FAILED` job status records in `ProcessingJobTracker`.
-4. **Interactive AOI Vector Drawing (Phase 3 Completion)**:
-   - Implement MapLibre GL drawing controls for creating and editing vector AOI polygons on the map canvas.
-   - Connect map-drawn geometries to the backend AOI API (`POST /api/v1/projects/{id}/aois`).
-5. **Durable Cloud Storage Integration (Phase 5 Prep)**:
+2. **Durable Cloud Storage Integration (Phase 5 Prep)**:
    - Attach a persistent volume or configure GCS/S3 storage backend for production deployments to ensure GeoTIFF files persist across container restarts.
+3. **Phase 4A SegFormer Integration**:
+   - Model weights loading and inference worker setup for semantic segmentation masks and pixel-wise uncertainty maps.
 
 ---
 

@@ -21,6 +21,7 @@ from app.services import RasterService
 from typing import Annotated
 from app.schemas.raster import (
     RasterCreate,
+    RasterPointInspectionResponse,
     RasterStatisticsResponse,
 )
 from app.schemas.processing import (
@@ -195,6 +196,20 @@ def get_raster_statistics(
     current_user: User = Depends(get_current_user),
 ):
     return service.get_statistics(project_id, raster_id, current_user)
+
+@router.get(
+    "/{raster_id}/point",
+    response_model=RasterPointInspectionResponse,
+)
+def get_raster_point(
+    project_id: int,
+    raster_id: int,
+    lon: float,
+    lat: float,
+    service: RasterService = Depends(get_raster_service),
+    current_user: User = Depends(get_current_user),
+):
+    return service.inspect_point(project_id, raster_id, lon, lat, current_user)
 
 @router.post(
     "/{raster_id}/process",

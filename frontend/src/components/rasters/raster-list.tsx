@@ -1,10 +1,10 @@
 import React from "react";
+import Link from "next/link";
 import { useRasters, useDeleteRaster } from "@/hooks/use-rasters";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2, Cpu, FileType, MapPin, Layers } from "lucide-react";
+import { Trash2, Cpu, FileType, MapPin, Layers, Map as MapIcon } from "lucide-react";
 import { RunProcessorDialog } from "@/components/processing/run-processor-dialog";
-import { RasterMapViewer } from "@/components/rasters/raster-map-viewer";
 import { RasterStatsDialog } from "@/components/rasters/raster-stats-dialog";
 import { toast } from "sonner";
 
@@ -71,7 +71,15 @@ export function RasterList({ projectId }: RasterListProps) {
               )}
             </div>
             <div className="flex items-center gap-2">
-              <RasterMapViewer raster={raster} />
+              <Link href={`/projects/${raster.project_id}/map?raster=${raster.id}`}>
+                <Button
+                  variant="outline"
+                  className="gap-2 rounded-full px-4 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-[#0B57D0]"
+                >
+                  <MapIcon className="h-4 w-4 text-[#0B57D0]" />
+                  <span>View on Map</span>
+                </Button>
+              </Link>
               <RasterStatsDialog raster={raster} />
               <RunProcessorDialog rasterId={raster.id} />
               <Button
